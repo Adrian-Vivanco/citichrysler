@@ -3,6 +3,7 @@ const http = require('http');
 const mysql = require('mysql2');
 const path = require('path');
 
+
 const app = express();
 const server = http.createServer(app);
 
@@ -17,6 +18,7 @@ const connection = mysql.createConnection({
 // Middleware para servir archivos estáticos desde las carpetas 'views' y 'Controller'
 app.use(express.static('views'));
 app.use(express.static('Controller'));
+app.use(express.static('Model'));
 
 // Parsear el cuerpo de las solicitudes con datos JSON
 app.use(express.json());
