@@ -3,7 +3,6 @@ const http = require('http');
 const mysql = require('mysql2');
 const path = require('path');
 
-
 const app = express();
 const server = http.createServer(app);
 
@@ -15,13 +14,13 @@ const connection = mysql.createConnection({
     database: 'citichrysler'
 });
 
-// Middleware para servir archivos estáticos desde las carpetas 'views' y 'Controller'
-app.use(express.static('views'));
-app.use(express.static('Controller'));
-app.use(express.static('Model'));
+// Middleware para servir archivos estáticos desde la carpeta 'views'
+app.use(express.static(path.join(__dirname, 'views')));
 
-// Parsear el cuerpo de las solicitudes con datos JSON
+// Middleware para analizar solicitudes con datos en formato JSON
 app.use(express.json());
+
+// Middleware para analizar solicitudes con datos codificados en URL
 app.use(express.urlencoded({ extended: true }));
 
 // Ruta para servir el archivo HTML del índice general
@@ -29,7 +28,48 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Ruta para manejar las solicitudes de inicio de sesión
+
+//INSERTAR VENDEDOR 
+app.post('/Administrador/procesar_formulario', (req, res) => {
+    
+    const {Nombre, A_paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol } = req.body;
+
+    connection.query('INSERT INTO vendedor (Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, Fecha_Alta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())', [Nombre, A_paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol], (error, results) => {
+        if (error) {
+            console.error('Error al insertar vendedor en la base de datos:', error);
+            return res.status(500).send('Error interno del servidor');
+        }
+        return res.status(200).send('Vendedor registrado exitosamente');
+    });
+    
+});
+
+
+//CONSULTAR VENDEDORES
+app.get('/consultar_vendedores', (req, res) => {
+    connection.query('SELECT * FROM vendedor WHERE ID_Rol = 2', (error, results) => {
+        if (error) {
+            console.error('Error al consultar vendedores:', error);
+            return res.status(500).json({ error: 'Error interno del servidor' });
+        }
+        // Convertir la imagen a Base64
+        results.forEach(vendedor => {
+            vendedor.Foto = Buffer.from(vendedor.Foto, 'binary').toString('base64');
+        });
+        res.json(results);
+    });
+});
+
+
+
+
+
+
+
+
+
+
+//LOGIN
 app.post('/login', (req, res) => {
     const { Username, Password } = req.body;
 
@@ -87,9 +127,6 @@ app.get('/Usuario', (req, res) => {
 app.get('/Vendedor', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'Vendedor', 'index.html'));
 });
-
-// Configurar el servidor estático
-app.use(express.static('public'));
 
 // Conectar a la base de datos MySQL
 connection.connect((err) => {
