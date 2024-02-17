@@ -1,4 +1,5 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const http = require('http');
 const mysql = require('mysql2');
 const path = require('path');
@@ -13,6 +14,10 @@ const connection = mysql.createConnection({
     password: 'ultraninja75',
     database: 'citichrysler'
 });
+
+// Configurar body-parser
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 // Middleware para servir archivos estáticos desde la carpeta 'views'
 app.use(express.static(path.join(__dirname, 'views')));
@@ -32,17 +37,29 @@ app.get('/', (req, res) => {
 //INSERTAR VENDEDOR 
 app.post('/Administrador/procesar_formulario', (req, res) => {
     
-    const {Nombre, A_paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol } = req.body;
+    const { Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol } = req.body;
 
-    connection.query('INSERT INTO vendedor (Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, Fecha_Alta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())', [Nombre, A_paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol], (error, results) => {
+    console.log('Datos recibidos del formulario:');
+    console.log('Nombre:', Nombre);
+    console.log('Apellido Paterno:', A_Paterno);
+    console.log('Apellido Materno:', A_Materno);
+    console.log('Email:', Email);
+    console.log('Teléfono:', Telefono);
+    console.log('Nombre de Usuario:', Username);
+    console.log('Contraseña:', Password);
+    console.log('ID Rol:', ID_Rol);
+
+    connection.query('INSERT INTO vendedor (Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, Fecha_Alta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())', [Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol], (error, results) => {
         if (error) {
             console.error('Error al insertar vendedor en la base de datos:', error);
             return res.status(500).send('Error interno del servidor');
         }
+        console.log('Vendedor registrado exitosamente en la base de datos');
         return res.status(200).send('Vendedor registrado exitosamente');
     });
     
 });
+
 
 
 //CONSULTAR VENDEDORES
@@ -54,11 +71,35 @@ app.get('/consultar_vendedores', (req, res) => {
         }
         // Convertir la imagen a Base64
         results.forEach(vendedor => {
-            vendedor.Foto = Buffer.from(vendedor.Foto, 'binary').toString('base64');
+            if (vendedor.Foto !== null) {
+                vendedor.Foto = Buffer.from(vendedor.Foto, 'binary').toString('base64');
+            }
         });
         res.json(results);
     });
 });
+
+// ELIMINAR VENDEDOR
+app.delete('/eliminar_vendedor/:id', (req, res) => {
+    const vendedorId = req.params.id;
+
+    connection.query('DELETE FROM vendedor WHERE ID_Vendedor = ?', vendedorId, (error, results) => {
+        if (error) {
+            console.error('Error al eliminar vendedor:', error);
+            return res.status(500).json({ error: 'Error interno del servidor' });
+        }
+
+        console.log(`Vendedor con ID ${vendedorId} eliminado exitosamente`);
+
+        // Envía una respuesta JSON indicando que el vendedor ha sido eliminado exitosamente
+        return res.status(200).json({ message: `Vendedor con ID ${vendedorId} eliminado exitosamente` });
+    });
+});
+
+
+
+
+
 
 
 

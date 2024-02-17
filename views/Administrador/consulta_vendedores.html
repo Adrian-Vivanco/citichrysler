@@ -59,8 +59,7 @@
                             <p class="card-text"><b>Fecha_Alta:</b> ${vendedor.Fecha_Alta}</p>
                             <hr>
                             <button type="button" data-bs-toggle="modal" data-bs-target="#exampleModal" class="btn btn-warning">Editar Vendedor</button>
-                            <button type="button" data-bs-toggle="modal" data-bs-target="#exampleModal" class="btn btn-danger">Eliminar Vendedor</button>
-
+                            <button type="button" class="btn btn-danger delete-vendedor" data-vendedor-id="${vendedor.ID}" data-vendedor-name="${vendedor.Nombre}">Eliminar Vendedor</button>
                             <!-- Puedes agregar más información según tu diseño -->
                         </div>
                     `;
@@ -76,6 +75,29 @@
             .catch(error => {
                 console.error('Error al obtener datos de vendedores:', error);
             });
+
+        // Agregar evento de clic para eliminar vendedor
+        document.addEventListener('click', function (event) {
+            if (event.target.classList.contains('delete-vendedor')) {
+                const vendedorId = event.target.getAttribute('data-vendedor-id');
+                const vendedorName = event.target.getAttribute('data-vendedor-name');
+                const confirmed = confirm(`¿Estás seguro de eliminar al vendedor ${vendedorName}?`);
+                if (confirmed) {
+                    fetch(`/eliminar_vendedor/${vendedorId}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data.message);
+                        // Aquí puedes actualizar la interfaz después de eliminar el vendedor
+                        // Por ejemplo, podrías recargar la página para actualizar la lista de vendedores
+                    })
+                    .catch(error => {
+                        console.error('Error al eliminar vendedor:', error);
+                    });
+                }
+            }
+        });
     </script>
 </body>
 </html>
