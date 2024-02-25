@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actualizar Vendedor</title>
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <script src="../js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="../css/bg.css">
+    <script src="https://kit.fontawesome.com/e07784388c.js" crossorigin="anonymous"></script>
+
+    <style>
+        /* Define el tamaño máximo para todas las imágenes */
+        .custom-img {
+            max-width: 200px; /* Ajusta el valor según el tamaño máximo deseado */
+            height: auto; /* Mantiene la proporción de aspecto */
+            display: block; /* Permite la alineación vertical */
+            margin: 0 auto; /* Centra horizontalmente */
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <img src="../img/logo.jpg" alt="" width="70" class="d-inline-block align-text-top">
+                CitiChrysler  
+            </a>
+            <a href="registro_vendedor.html" id="empresa" class="btn text-light text-opacity-50 fs-5 ">Registrar Vendedores<i class="fa-solid fa-briefcase"></i></a>
+            <a href="consulta_vendedores.html" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Consulta Vendedores<i class="fa-solid fa-clipboard-list"></i></a>
+            <a href="#" id="empleados" class="btn text-light text-opacity-50 fs-5 ">Cerrar sesión<i class="fa-solid fa-person-walking-luggage"></i></a>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2>Actualizar Vendedor</h2>
+        <form id="actualizarVendedorForm" enctype="application/x-www-form-urlencoded"  method="POST">
+            <input type="hidden" id="vendedorId" name="vendedorId">
+            <div class="mb-3">
+                <label for="Nombre" class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="Nombre" name="Nombre" required>
+            </div>
+            <div class="mb-3">
+                <label for="A_Paterno" class="form-label">Apellido Paterno</label>
+                <input type="text" class="form-control" id="A_Paterno" name="A_Paterno" required>
+            </div>
+            <div class="mb-3">
+                <label for="A_Materno" class="form-label">Apellido Materno</label>
+                <input type="text" class="form-control" id="A_Materno" name="A_Materno" required>
+            </div>
+            <div class="mb-3">
+                <label for="Email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="Email" name="Email" required>
+            </div>
+            <div class="mb-3">
+                <label for="Telefono" class="form-label">Teléfono</label>
+                <input type="text" class="form-control" id="Telefono" name="Telefono" required>
+            </div>
+            <div class="mb-3">
+                <label for="Username" class="form-label">Nombre de Usuario</label>
+                <input type="text" class="form-control" id="Username" name="Username" required>
+            </div>
+            <div class="mb-3">
+                <label for="Password" class="form-label">Contraseña</label>
+                <input type="password" class="form-control" id="Password" name="Password" required>
+            </div>
+            <div class="mb-3">
+                <label for="ID_Rol" class="form-label">Rol</label>
+                <select class="form-select" id="ID_Rol" name="ID_Rol" required>
+                    <option value="">Seleccionar Rol</option>
+                    <option value="1">Administrador</option>
+                    <option value="2">Vendedor</option>
+                    <option value="3">Usuario</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Actualizar Vendedor</button>
+        </form>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const vendedorId = urlParams.get('id');
+
+        fetch(`/obtener_vendedor/${vendedorId}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('vendedorId').value = data.ID_Vendedor;
+                document.getElementById('Nombre').value = data.Nombre;
+                document.getElementById('A_Paterno').value = data.A_Paterno;
+                document.getElementById('A_Materno').value = data.A_Materno;
+                document.getElementById('Email').value = data.Email;
+                document.getElementById('Telefono').value = data.Telefono;
+                document.getElementById('Username').value = data.Username;
+                document.getElementById('Password').value = data.Password;
+                document.getElementById('ID_Rol').value = data.ID_Rol;
+            })
+            .catch(error => console.error('Error al obtener datos del vendedor:', error));
+
+        document.getElementById('actualizarVendedorForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this); 
+
+            fetch(`/actualizar_vendedor/${vendedorId}`, {
+                method: 'PUT',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.message);
+                alert('Vendedor actualizado exitosamente');
+                window.location.href = 'consulta_vendedores.html';
+            })
+            .catch(error => {
+                console.error('Error al actualizar vendedor:', error);
+                alert('Error al actualizar vendedor. Por favor, inténtalo de nuevo.');
+            });
+        });
+    </script>
+
+</body>
+</html>
