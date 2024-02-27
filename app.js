@@ -1,4 +1,5 @@
 const express = require('express');
+const session = require('express-session');
 const bodyParser = require('body-parser');
 const http = require('http');
 const mysql = require('mysql2');
@@ -14,6 +15,16 @@ const connection = mysql.createConnection({
     password: 'ultraninja75',
     database: 'citichrysler'
 });
+
+//configuración de express-sesion
+
+app.use(session({
+    secret: 'tu_secreto',
+    resave: false,
+    saveUninitialized: true
+}));
+
+
 
 // Configurar body-parser
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -171,35 +182,77 @@ app.get('/consultar_citas', (req, res) => {
 
 
 
+//CONSULTAR CITAS POR VENDEDOR
+// Obtener citas del vendedor actual
+app.get('/consultar_citas_vendedor', (req, res) => {
+    if (req.session.user) {
+        const vendedorId = req.session.user.ID_Vendedor;
+
+        connection.query(`
+            SELECT 
+                c.ID_Cita, 
+                c.Asunto, 
+                CONCAT(u.Nombre, ' ', u.A_Paterno, ' ', u.A_Materno) AS Nombre_Usuario,
+                CONCAT(v.Nombre, ' ', v.A_Paterno, ' ', v.A_Materno) AS Nombre_Vendedor, 
+                ce.Estado AS Estado_Cita, 
+                ca.Asistencia_Estado AS Asistencia_Cita, 
+                cp.Pioridad AS Pioridad_Cita, 
+                d.Prueba_Manejo, 
+                d.Comprobante_Domicilio, 
+                d.Identificacion_Oficial, 
+                d.Cotizacion, 
+                c.Fecha_Cita, 
+                c.Fecha_Alta
+            FROM 
+                citas c
+            LEFT JOIN 
+                usuario u ON c.ID_Usuario = u.ID_Usuario
+            LEFT JOIN 
+                vendedor v ON c.ID_Vendedor = v.ID_Vendedor
+            LEFT JOIN 
+                cita_estado ce ON c.ID_Cita_Estado = ce.ID_Cita_Estado
+            LEFT JOIN 
+                cita_asistencia ca ON c.ID_Cita_Asistencia = ca.ID_Cita_Asistencia
+            LEFT JOIN 
+                cita_pioridad cp ON c.ID_Cita_Pioridad = cp.ID_Cita_Pioridad
+            LEFT JOIN 
+                documentos d ON c.ID_Documentos = d.ID_Documentos
+            WHERE 
+                c.ID_Vendedor = ?
+        `, [vendedorId], (error, results) => {
+            if (error) {
+                console.error('Error al consultar citas del vendedor:', error);
+                return res.status(500).json({ error: 'Error interno del servidor' });
+            }
+            
+            res.json(results);
+        });
+    } else {
+        res.status(401).send('No se ha iniciado sesión');
+    }
+});
 
 
-
-
-
-
-
-
-
-
-//VALIDACIÓN DE VENDEDOR ACTUAL
-// Ruta para obtener los datos del vendedor actualmente autenticado
+// MIS DATOS EN MI CUENTA
 app.get('/obtener_datos_vendedor_actual', (req, res) => {
-    const vendedorId = req.session.vendedorId; // Obtener el ID del vendedor de la sesión
+    if (req.session.user) {
+        const vendedorId = req.session.user.ID_Vendedor;
 
-    // Consultar la base de datos para obtener los datos del vendedor actual
-    connection.query('SELECT * FROM vendedor WHERE ID_Vendedor = ?', vendedorId, (error, results) => {
-        if (error) {
-            console.error('Error al obtener los datos del vendedor:', error);
-            return res.status(500).json({ error: 'Error interno del servidor' });
-        }
+        connection.query('SELECT * FROM vendedor WHERE ID_Vendedor = ?', [vendedorId], (error, results) => {
+            if (error) {
+                console.error('Error al obtener los datos del vendedor:', error);
+                return res.status(500).send('Error interno del servidor');
+            }
 
-        if (results.length === 0) {
-            return res.status(404).json({ error: 'Vendedor no encontrado' });
-        }
-
-        // Devolver los datos del vendedor como respuesta
-        res.json(results[0]);
-    });
+            if (results.length > 0) {
+                res.json(results[0]); // Devolver los datos del vendedor actualmente autenticado
+            } else {
+                res.status(404).send('Datos del vendedor no encontrados');
+            }
+        });
+    } else {
+        res.status(401).send('No se ha iniciado sesión');
+    }
 });
 
 
@@ -209,6 +262,15 @@ app.get('/obtener_datos_vendedor_actual', (req, res) => {
 
 
 
+// OBTENER DATOS DEL USUARIO INICIANDO SESIÓN
+app.get('/obtener_datos_usuario_actual', (req, res) => {
+    if (req.session.user) {
+        res.json(req.session.user); // Devolver los datos del usuario almacenados en la sesión
+    } else {
+        res.status(401).send('No se ha iniciado sesión');
+    }
+});
+
 
 
 
@@ -217,13 +279,14 @@ app.get('/obtener_datos_vendedor_actual', (req, res) => {
 app.post('/login', (req, res) => {
     const { Username, Password } = req.body;
 
-    connection.query('SELECT ID_Rol FROM vendedor WHERE Username = ? AND Password = ?', [Username, Password], (error, results) => {
+    connection.query('SELECT * FROM vendedor WHERE Username = ? AND Password = ?', [Username, Password], (error, results) => {
         if (error) {
             console.error('Error al verificar el inicio de sesión del vendedor:', error);
             return res.status(500).send('Error interno del servidor');
         }
 
         if (results.length > 0) {
+            req.session.user = results[0]; // Guardar datos del vendedor en la sesión
             if (results[0].ID_Rol === 2) {
                 return res.redirect('/Vendedor');
             }
@@ -232,13 +295,14 @@ app.post('/login', (req, res) => {
             }
         }
 
-        connection.query('SELECT ID_Rol FROM usuario WHERE Username = ? AND Password = ?', [Username, Password], (error, results) => {
+        connection.query('SELECT * FROM usuario WHERE Username = ? AND Password = ?', [Username, Password], (error, results) => {
             if (error) {
                 console.error('Error al verificar el inicio de sesión del usuario:', error);
                 return res.status(500).send('Error interno del servidor');
             }
 
             if (results.length > 0) {
+                req.session.user = results[0]; // Guardar datos del usuario en la sesión
                 if (results[0].ID_Rol === 3) {
                     return res.redirect('/Usuario');
                 }
@@ -251,6 +315,7 @@ app.post('/login', (req, res) => {
         });
     });
 });
+
 
 app.get('/Administrador', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'Administrador', 'index.html'));
