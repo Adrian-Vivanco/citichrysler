@@ -45,6 +45,17 @@
             .then(data => {
                 // Iterar sobre los datos y crear elementos HTML para cada cita
                 data.forEach(cita => {
+                    // Convertir la fecha y hora de la cita a un formato legible
+                    const fechaHoraLocal = new Date(cita.Fecha_Cita);
+                    const dia = fechaHoraLocal.getDate();
+                    const mes = fechaHoraLocal.getMonth() + 1;
+                    const año = fechaHoraLocal.getFullYear();
+                    const horas = String(fechaHoraLocal.getHours()).padStart(2, '0');
+                    const minutos = String(fechaHoraLocal.getMinutes()).padStart(2, '0');
+                    const segundos = String(fechaHoraLocal.getSeconds()).padStart(2, '0');
+                    const fechaHoraString = `${dia}/${mes}/${año}, ${horas}:${minutos}:${segundos}`;
+
+                    // Crear elemento HTML para la cita
                     const citaCard = document.createElement('div');
                     citaCard.classList.add('card', 'col-sm-4', 'm-2', 'p-1');
                     citaCard.innerHTML = `
@@ -52,9 +63,9 @@
                             <h5 class="card-title">${cita.Nombre_Usuario}  </h5>
                             <p class="card-text"><b>Asunto:</b> ${cita.Asunto}</p>
                             <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
-                            <p class="card-text"><b>Fecha de Cita:</b> ${cita.Fecha_Cita}</p>
+                            <p class="card-text"><b>Fecha de Cita:</b> ${fechaHoraString}</p>
                             <hr>
-                            <button type="button" class="btn btn-warning">Tomar cita</button>
+                            <button type="button" class="btn btn-warning" onclick="tomarCita(${cita.ID_Cita}, '${cita.Fecha_Cita}')">Tomar cita</button>
                         </div>
                     `;
     
@@ -64,6 +75,48 @@
             .catch(error => {
                 console.error('Error al obtener datos de citas:', error);
             });
+
+            function tomarCita(idCita, fechaCita) {
+    fetch('/Vendedor/tomar_cita', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ idCita: idCita, fechaCita: fechaCita })
+    })
+    .then(response => {
+        if (response.ok) {
+            alert('Cita tomada exitosamente');
+            // Refrescar la página después de 1 segundo
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            alert('Error al tomar la cita');
+        }
+    })
+    .catch(error => {
+        console.error('Error al tomar la cita:', error);
+        alert('Error interno del servidor');
+    });
+}
+
+function verificarHoraCita(fechaCita) {
+    // Obtener la hora actual en formato UTC
+    const horaActual = new Date().getTime();
+
+    // Convertir la fecha de la cita a milisegundos
+    const horaCita = new Date(fechaCita).getTime();
+
+    // Calcular la diferencia de tiempo en milisegundos
+    const diferenciaTiempo = horaActual - horaCita;
+
+    // Convertir la diferencia de tiempo a horas
+    const diferenciaHoras = diferenciaTiempo / (1000 * 3600);
+
+    // Si la diferencia de tiempo es menor a 1 hora, retornar falso
+    return diferenciaHoras >= 1;
+}
     </script>
 </body>
 </html>

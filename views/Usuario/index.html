@@ -13,6 +13,13 @@
 <!-- Favicon - FIS -->
 <link rel="shortcut icon" href="img/logo.png">
   <title>CitiChrysler</title>
+
+  <style>
+    /* Agregamos un estilo para ocultar el formulario inicialmente */
+    #formCita {
+        display: none;
+    }
+  </style>
 </head>
 <body>
     <nav class="navbar navbar-dark bg-dark">
@@ -21,17 +28,86 @@
                 <img src="../img/logo.jpg" alt="" width="70" class="d-inline-block align-text-top">
                 CitiChrysler  
             </a>
+            <a href="#" id="crearCitaBtn" class="btn text-light text-opacity-50 fs-5 ">+ Crear Cita</a>
             <a href="citas.html" id="empresa" class="btn text-light text-opacity-50 fs-5 ">Mis Citas<i class="fa-solid fa-briefcase"></i></a>
-          <a href="#" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Mis datos<i class="fa-solid fa-clipboard-list"></i></a>
-          <a href="#" id="empleados" class="btn text-light text-opacity-50 fs-5 ">Cerrar sesión<i class="fa-solid fa-person-walking-luggage"></i></a>
+            <a href="mis_datos.html" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Mis datos<i class="fa-solid fa-clipboard-list"></i></a>
+            <a href="#" id="empleados" class="btn text-light text-opacity-50 fs-5 ">Cerrar sesión<i class="fa-solid fa-person-walking-luggage"></i></a>
       
             <form  style="color: #fff">
-              
-              
-              </form>
+            </form>
       
         </div>
       </nav>
     
+    <!-- Formulario para crear cita -->
+    <div class="container mt-3" id="formCita">
+        <h3>Crear Cita</h3>
+        <form id="crearCitaForm" enctype="application/x-www-form-urlencoded" action="/Usuario/procesar_formulario_cita" method="post">
+            <div class="mb-3">
+                <label for="asuntoInput" class="form-label">Asunto *</label>
+                <input type="text" class="form-control" id="asuntoInput" name="Asunto" required>
+            </div>
+            <div class="mb-3">
+                <label for="fechaCitaInput" class="form-label">Fecha de Cita *</label>
+                <input type="datetime-local" class="form-control" id="fechaCitaInput" name="Fecha_Cita" required min="<?php echo date('Y-m-d\TH:i', strtotime('+1 day')); ?>T10:00" max="<?php echo date('Y-m-d\TH:i', strtotime('+1 day')); ?>T18:00">
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="insertarDocumentosCheck">
+                <label class="form-check-label" for="insertarDocumentosCheck">Insertar Documentos</label>
+            </div>
+            <button type="submit" class="btn btn-primary">Crear</button>
+        </form>
+    </div>
+
+    <!-- Formulario para documentos -->
+    <div class="container mt-3" id="formDocumentos" style="display: none;">
+        <h3>Documentos</h3>
+        <form id="crearDocumentosForm">
+            <div class="mb-3">
+                <label for="pruebaManejoInput" class="form-label">Prueba de Manejo</label>
+                <input type="file" class="form-control" id="pruebaManejoInput" accept=".pdf">
+            </div>
+            <div class="mb-3">
+                <label for="comprobanteDomicilioInput" class="form-label">Comprobante de Domicilio</label>
+                <input type="file" class="form-control" id="comprobanteDomicilioInput" accept=".pdf">
+            </div>
+            <div class="mb-3">
+                <label for="identificacionOficialInput" class="form-label">Identificación Oficial</label>
+                <input type="file" class="form-control" id="identificacionOficialInput" accept=".pdf">
+            </div>
+            <div class="mb-3">
+                <label for="cotizacionInput" class="form-label">Cotización</label>
+                <input type="file" class="form-control" id="cotizacionInput" accept=".pdf">
+            </div>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('crearCitaBtn').addEventListener('click', function() {
+            document.getElementById('formCita').style.display = 'block';
+        });
+
+        // Al seleccionar la opción de insertar documentos, mostrar el formulario de documentos
+        document.getElementById('insertarDocumentosCheck').addEventListener('change', function() {
+            document.getElementById('formDocumentos').style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Lógica para determinar la prioridad de la cita
+        const idDocumentos = obtenerIDDocumentos(); // Esta función debería obtener el ID de documentos del usuario
+
+        let prioridadCitaInput = document.getElementById('prioridadCitaInput');
+        if (idDocumentos) {
+            prioridadCitaInput.value = 2; // Si hay documentos, prioridad alta
+        } else {
+            prioridadCitaInput.value = 1; // Si no hay documentos, prioridad baja
+        }
+
+        // Función para obtener el ID de documentos del usuario (simulado)
+        function obtenerIDDocumentos() {
+            // Lógica para obtener el ID de documentos del usuario
+            return null; // Ejemplo de ID de documentos (vacío)
+        }
+    </script>
 </body>
 </html>

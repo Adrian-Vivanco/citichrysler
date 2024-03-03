@@ -54,9 +54,20 @@
                             <h5 class="card-title">${cita.Nombre_Usuario}  </h5>
                             <p class="card-text"><b>Asunto:</b> ${cita.Asunto}</p>
                             <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
+                            <p class="card-text"><b>Estado:</b> ${cita.Estado_Cita}</p>
                             <p class="card-text"><b>Fecha de Cita:</b> ${cita.Fecha_Cita}</p>
-                        </div>
-                    `;
+                            <div class="dropdown">
+                                <button onclick="mostrarMenuDesplegable(${cita.ID_Cita})" class="btn btn-secondary botonDesplegable">Cambiar Estado</button>
+                                <div id="menuDesplegable_${cita.ID_Cita}" class="dropdown-menu menuDesplegable">
+                                    <a class="dropdown-item" href="#" onclick="cambiarEstado(${cita.ID_Cita}, 1)">En espera</a>
+                                    <a class="dropdown-item" href="#" onclick="cambiarEstado(${cita.ID_Cita}, 2)">Aceptada</a>
+                                    <a class="dropdown-item" href="#" onclick="cambiarEstado(${cita.ID_Cita}, 3)">Rechazada</a>
+                                    <a class="dropdown-item" href="#" onclick="cambiarEstado(${cita.ID_Cita}, 4)">Finalizada</a>
+                                </div>
+                            </div>
+                            <hr>
+                            <button type="button" class="btn btn-danger" onclick="dejarCita(${cita.ID_Cita})">Dejar cita</button>
+                    </div>`;
 
                     document.getElementById('CitasContainer').appendChild(citaCard);
                 });
@@ -64,6 +75,73 @@
             .catch(error => {
                 console.error('Error al obtener datos de citas:', error);
             });
+
+        // Función para dejar cita
+        function dejarCita(idCita) {
+            // Confirmar si el usuario realmente quiere dejar la cita
+            if (confirm("¿Estás seguro de que deseas dejar esta cita?")) {
+                // Hacer una solicitud al servidor para dejar la cita
+                fetch(`/Vendedor/dejar_cita`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ idCita: idCita })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert("Cita dejada exitosamente");
+                        // Recargar la página después de dejar la cita
+                        location.reload();
+                    } else {
+                        alert("Hubo un error al dejar la cita. Por favor, inténtalo de nuevo más tarde.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al dejar la cita:', error);
+                    alert("Hubo un error al dejar la cita. Por favor, inténtalo de nuevo más tarde.");
+                });
+            }
+        }
+
+        // Función para mostrar el menú desplegable de cambio de estado de la cita
+        function mostrarMenuDesplegable(idCita) {
+            document.getElementById(`menuDesplegable_${idCita}`).classList.toggle("show");
+        }
+
+        // Cierra el menú desplegable si el usuario hace clic fuera de él
+        window.onclick = function(event) {
+            if (!event.target.matches('.botonDesplegable')) {
+                var dropdowns = document.getElementsByClassName("menuDesplegable");
+                var i;
+                for (i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+
+        // Función para cambiar el estado de la cita
+        function cambiarEstado(idCita, idEstado) {
+            fetch(`/cambiar_estado_cita/${idCita}/${idEstado}`, {
+                method: 'PUT',
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Estado de la cita cambiado exitosamente");
+                    // Recargar la página después de cambiar el estado de la cita
+                    location.reload();
+                } else {
+                    alert("Hubo un error al cambiar el estado de la cita. Por favor, inténtalo de nuevo más tarde.");
+                }
+            })
+            .catch(error => {
+                console.error('Error al cambiar el estado de la cita:', error);
+                alert("Hubo un error al cambiar el estado de la cita. Por favor, inténtalo de nuevo más tarde.");
+            });
+        }
     </script>
 </body>
 </html>

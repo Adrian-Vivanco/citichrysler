@@ -127,6 +127,57 @@ app.put('/actualizar_vendedor/:id', (req, res) => {
         });
 });
 
+//CONSULTAR CITAS ASIGNADAS DEL VENDEDOR
+app.get('/consultar_citas_por_vendedor', (req, res) => {
+    const vendedorId = req.query.id; // Obtener el ID del vendedor de la consulta HTTP
+
+    // Verificar que el ID del vendedor esté presente
+    if (!vendedorId) {
+        return res.status(400).json({ error: 'ID de vendedor no proporcionado' });
+    }
+
+    connection.query(`
+        SELECT 
+            c.ID_Cita, 
+            c.Asunto, 
+            CONCAT(u.Nombre, ' ', u.A_Paterno, ' ', u.A_Materno) AS Nombre_Usuario,
+            CONCAT(v.Nombre, ' ', v.A_Paterno, ' ', v.A_Materno) AS Nombre_Vendedor, 
+            ce.Estado AS Estado_Cita, 
+            ca.Asistencia_Estado AS Asistencia_Cita, 
+            cp.Pioridad AS Pioridad_Cita, 
+            d.Prueba_Manejo, 
+            d.Comprobante_Domicilio, 
+            d.Identificacion_Oficial, 
+            d.Cotizacion, 
+            c.Fecha_Cita, 
+            c.Fecha_Alta
+        FROM 
+            citas c
+        LEFT JOIN 
+            usuario u ON c.ID_Usuario = u.ID_Usuario
+        LEFT JOIN 
+            vendedor v ON c.ID_Vendedor = v.ID_Vendedor
+        LEFT JOIN 
+            cita_estado ce ON c.ID_Cita_Estado = ce.ID_Cita_Estado
+        LEFT JOIN 
+            cita_asistencia ca ON c.ID_Cita_Asistencia = ca.ID_Cita_Asistencia
+        LEFT JOIN 
+            cita_pioridad cp ON c.ID_Cita_Pioridad = cp.ID_Cita_Pioridad
+        LEFT JOIN 
+            documentos d ON c.ID_Documentos = d.ID_Documentos
+        WHERE
+            c.ID_Vendedor = ?
+    `, [vendedorId], (error, results) => {
+        if (error) {
+            console.error('Error al consultar citas:', error);
+            return res.status(500).json({ error: 'Error interno del servidor' });
+        }
+        
+        res.json(results);
+    });
+});
+
+
 
 
 
@@ -254,6 +305,171 @@ app.get('/obtener_datos_vendedor_actual', (req, res) => {
         res.status(401).send('No se ha iniciado sesión');
     }
 });
+
+
+//VENDEDOR TOMA CITA
+app.post('/Vendedor/tomar_cita', (req, res) => {
+    const idVendedor = req.session.user.ID_Vendedor; 
+    const idCita = req.body.idCita; 
+
+    connection.query('UPDATE citas SET ID_Vendedor = ? WHERE ID_Cita = ?', [idVendedor, idCita], (error, results) => {
+        if (error) {
+            console.error('Error al tomar la cita:', error);
+            return res.status(500).send('Error interno del servidor');
+        }
+        console.log('Cita tomada exitosamente');
+        return res.status(200).send('Cita tomada exitosamente');
+    });
+});
+
+//VENDEDOR DEJAR CITA
+app.post('/Vendedor/dejar_cita', (req, res) => {
+    const idVendedor = req.session.user.ID_Vendedor;
+    const idCita = req.body.idCita;
+
+    connection.query('UPDATE citas SET ID_Vendedor = NULL WHERE ID_Cita = ? AND ID_Vendedor = ?', [idCita, idVendedor], (error, results) => {
+        if (error) {
+            console.error('Error al dejar la cita:', error);
+            return res.status(500).send('Error interno del servidor');
+        }
+        console.log('Cita dejada exitosamente');
+        return res.status(200).send('Cita dejada exitosamente');
+    });
+});
+
+//VENDEDOR CAMBIAR ESTADO DE CITA
+app.put('/cambiar_estado_cita/:idCita/:nuevoEstado', (req, res) => {
+    const idCita = req.params.idCita;
+    const nuevoEstado = req.params.nuevoEstado;
+
+    connection.query('UPDATE citas SET ID_Cita_Estado = ? WHERE ID_Cita = ?', [nuevoEstado, idCita], (error, results) => {
+        if (error) {
+            console.error('Error al cambiar el estado de la cita:', error);
+            return res.status(500).send('Error interno del servidor');
+        }
+        console.log('Estado de la cita cambiado exitosamente');
+        return res.status(200).send('Estado de la cita cambiado exitosamente');
+    });
+});
+
+
+
+
+
+
+
+
+
+
+//MÓDULO DEL USUARIO 
+// CONSULTAR CITAS POR USUARIO
+app.get('/consultar_citas_usuario', (req, res) => {
+    if (req.session.user) {
+        const userId = req.session.user.ID_Usuario;
+
+        connection.query(`
+            SELECT 
+                c.ID_Cita, 
+                c.Asunto, 
+                CONCAT(u.Nombre, ' ', u.A_Paterno, ' ', u.A_Materno) AS Nombre_Usuario,
+                CONCAT(v.Nombre, ' ', v.A_Paterno, ' ', v.A_Materno) AS Nombre_Vendedor, 
+                ce.Estado AS Estado_Cita, 
+                ca.Asistencia_Estado AS Asistencia_Cita, 
+                cp.Pioridad AS Pioridad_Cita, 
+                d.Prueba_Manejo, 
+                d.Comprobante_Domicilio, 
+                d.Identificacion_Oficial, 
+                d.Cotizacion, 
+                c.Fecha_Cita, 
+                c.Fecha_Alta
+            FROM 
+                citas c
+            LEFT JOIN 
+                usuario u ON c.ID_Usuario = u.ID_Usuario
+            LEFT JOIN 
+                vendedor v ON c.ID_Vendedor = v.ID_Vendedor
+            LEFT JOIN 
+                cita_estado ce ON c.ID_Cita_Estado = ce.ID_Cita_Estado
+            LEFT JOIN 
+                cita_asistencia ca ON c.ID_Cita_Asistencia = ca.ID_Cita_Asistencia
+            LEFT JOIN 
+                cita_pioridad cp ON c.ID_Cita_Pioridad = cp.ID_Cita_Pioridad
+            LEFT JOIN 
+                documentos d ON c.ID_Documentos = d.ID_Documentos
+            WHERE 
+                c.ID_Usuario = ?
+        `, [userId], (error, results) => {
+            if (error) {
+                console.error('Error al consultar citas del usuario:', error);
+                return res.status(500).json({ error: 'Error interno del servidor' });
+            }
+            
+            res.json(results);
+        });
+    } else {
+        res.status(401).send('No se ha iniciado sesión');
+    }
+});
+
+
+
+// INSERTAR CITA
+app.post('/Usuario/procesar_formulario_cita', (req, res) => {
+    const { Asunto, Fecha_Cita } = req.body;
+    const ID_Usuario = req.session.user.ID_Usuario; 
+
+    let ID_Cita_Prioridad = 2; // Prioridad baja por defecto
+    if (req.body.ID_Documentos) {
+        ID_Cita_Prioridad = 1; // Prioridad alta si hay documentos
+    }
+
+    const fechaActual = new Date();
+    const fechaCita = new Date(Fecha_Cita);
+    if (fechaCita <= fechaActual) {
+        return res.status(400).send('La fecha de la cita debe ser posterior a la fecha actual');
+    }
+
+    const horaCita = fechaCita.getHours();
+    if (horaCita < 10 || horaCita >= 18) {
+        return res.status(400).send('La hora de la cita debe estar entre las 10:00 am y las 6:00 pm');
+    }
+
+    console.log('Datos recibidos del formulario de cita:');
+    console.log('Asunto:', Asunto);
+    console.log('Fecha de Cita:', Fecha_Cita);
+    console.log('ID_Usuario:', ID_Usuario);
+    console.log('ID_Cita_Prioridad:', ID_Cita_Prioridad);
+
+    // Realizar la inserción en la base de datos
+    const query = 'INSERT INTO citas (Asunto, ID_Usuario, ID_Cita_Pioridad, ID_Cita_Estado, Fecha_Cita, Fecha_Alta) VALUES (?, ?, ?, 1, ?, NOW())';
+    connection.query(query, [Asunto, ID_Usuario, ID_Cita_Prioridad, Fecha_Cita], (error, results) => {
+        if (error) {
+            console.error('Error al insertar cita en la base de datos:', error);
+            return res.status(500).send('Error interno del servidor');
+        }
+        console.log('Cita registrada exitosamente en la base de datos');
+        return res.status(200).send('Cita registrada exitosamente');
+    });
+});
+
+// Ruta para guardar los documentos
+app.post('/Usuario/guardar_documentos', (req, res) => {
+    const { pruebaManejo, comprobanteDomicilio, identificacionOficial, cotizacion } = req.body;
+    const ID_Usuario = req.session.user.ID_Usuario;
+
+    // Realizar la inserción en la base de datos
+    const query = 'INSERT INTO documentos (ID_Usuario, Prueba_Manejo, Comprobante_Domicilio, Identificacion_Oficial, Cotizacion, Fecha_Alta) VALUES (?, ?, ?, ?, ?, NOW())';
+    connection.query(query, [ID_Usuario, pruebaManejo, comprobanteDomicilio, identificacionOficial, cotizacion], (error, results) => {
+        if (error) {
+            console.error('Error al guardar los documentos en la base de datos:', error);
+            return res.status(500).send('Error interno del servidor');
+        }
+        console.log('Documentos guardados exitosamente en la base de datos');
+        return res.status(200).send('Documentos guardados exitosamente');
+    });
+});
+
+
 
 
 

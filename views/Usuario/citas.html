@@ -30,10 +30,10 @@
                 <img src="../img/logo.jpg" alt="" width="70" class="d-inline-block align-text-top">
                 CitiChrysler  
             </a>
-            <a href="citas.html" id="empresa" class="btn text-light text-opacity-50 fs-5 ">Mis Citas<i class="fa-solid fa-briefcase"></i></a>
-          <a href="#" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Mis datos<i class="fa-solid fa-clipboard-list"></i></a>
+          <a href="citas.html" id="empresa" class="btn text-light text-opacity-50 fs-5 ">Mis Citas<i class="fa-solid fa-briefcase"></i></a>
+          <a href="mis_datos.html" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Mis datos<i class="fa-solid fa-clipboard-list"></i></a>
           <a href="#" id="empleados" class="btn text-light text-opacity-50 fs-5 ">Cerrar sesión<i class="fa-solid fa-person-walking-luggage"></i></a>
-      
+     
             <form  style="color: #fff">
               
                 
@@ -41,76 +41,37 @@
       
         </div>
       </nav>
-
-      
-    <div class="container mt-5">
-        <h2>Lista de Vendedores</h2>
-        <div id="vendedoresContainer" class="row">
+      <div class="container mt-5">
+        <h2>Mis Citas</h2>
+        <div id="CitasContainer" class="row">
+            <!-- Aquí se cargarán las citas -->
         </div>
     </div>
 
     <script>
-        // Hacer una solicitud al servidor para obtener los datos de los vendedores
-        fetch('/consultar_vendedores')
+        // Hacer una solicitud al servidor para obtener las citas del vendedor actualmente autenticado
+        fetch('/consultar_citas_usuario')
             .then(response => response.json())
             .then(data => {
-                // Iterar sobre los datos y crear elementos HTML para cada vendedor
-                data.forEach(vendedor => {
-                    const vendedorCard = document.createElement('div');
-                    vendedorCard.classList.add('card', 'col-sm-4', 'm-2', 'p-1');
-                    vendedorCard.innerHTML = `
-        
-
-                        <div class="card-body">
-                            <h5 class="card-title">${vendedor.Nombre} ${vendedor.A_Paterno} ${vendedor.A_Materno}</h5>
-                            <p class="card-text"><b>Email:</b> ${vendedor.Email}</p>
-                            <p class="card-text"><b>Teléfono:</b> ${vendedor.Telefono}</p>
-                            <p class="card-text"><b>Nombre de Usuario:</b> ${vendedor.Username}</p>
-                            <p class="card-text"><b>Fecha_Alta:</b> ${vendedor.Fecha_Alta}</p>
-                            <hr>
-                            <button type="button" data-bs-toggle="modal" data-bs-target="#exampleModal" class="btn btn-warning">Editar Vendedor</button>
-                            <button type="button" class="btn btn-danger delete-vendedor" data-vendedor-id="${vendedor.ID_Vendedor}" data-vendedor-name="${vendedor.Nombre}">Eliminar Vendedor</button>
-                            <!-- Puedes agregar más información según tu diseño -->
+                // Iterar sobre los datos y crear elementos HTML para cada cita
+                data.forEach(cita => {
+                    const citaCard = document.createElement('div');
+                    citaCard.classList.add('card', 'col-sm-4', 'm-2', 'p-1');
+                    citaCard.innerHTML = `
+                    <div class="card-body">
+                            <h5 class="card-title">${cita.Nombre_Usuario}  </h5>
+                            <p class="card-text"><b>Asunto:</b> ${cita.Asunto}</p>
+                            <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
+                            <p class="card-text"><b>Fecha de Cita:</b> ${cita.Fecha_Cita}</p>
                         </div>
                     `;
-    
-                    // Verificar si el vendedor tiene una foto y establecerla como fuente de la imagen
-                   
-    
-                    document.getElementById('vendedoresContainer').appendChild(vendedorCard);
+
+                    document.getElementById('CitasContainer').appendChild(citaCard);
                 });
             })
             .catch(error => {
-                console.error('Error al obtener datos de vendedores:', error);
+                console.error('Error al obtener datos de citas:', error);
             });
-
-        // Agregar evento de clic para eliminar vendedor
-document.addEventListener('click', function (event) {
-    if (event.target.classList.contains('delete-vendedor')) {
-        const vendedorId = event.target.getAttribute('data-vendedor-id');
-        const vendedorName = event.target.getAttribute('data-vendedor-name');
-        const confirmed = confirm(`¿Estás seguro de eliminar al vendedor ${vendedorName}?`);
-        if (confirmed) {
-            fetch(`/eliminar_vendedor/${vendedorId}`, {
-                method: 'DELETE'
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data.message);
-                // Aquí puedes actualizar la interfaz después de eliminar el vendedor
-                // Eliminar el elemento HTML del vendedor eliminado
-                const deletedVendedor = document.querySelector(`[data-vendedor-id="${vendedorId}"]`).closest('.card');
-                deletedVendedor.remove();
-            })
-            .catch(error => {
-                console.error('Error al eliminar vendedor:', error);
-            });
-        }
-    }
-});
-
     </script>
-
-      
 </body>
 </html>

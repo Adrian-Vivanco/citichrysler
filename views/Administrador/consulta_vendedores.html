@@ -59,6 +59,7 @@
                             <p class="card-text"><b>Nombre de Usuario:</b> ${vendedor.Username}</p>
                             <p class="card-text"><b>Fecha_Alta:</b> ${vendedor.Fecha_Alta}</p>
                             <hr>
+                            <button type="button" class="btn btn-success citi-vendedor" data-vendedor-id="${vendedor.ID_Vendedor}">Ver citas</button>
                             <button type="button" class="btn btn-warning edit-vendedor" data-vendedor-id="${vendedor.ID_Vendedor}">Editar Vendedor</button>
                             <button type="button" class="btn btn-danger delete-vendedor" data-vendedor-id="${vendedor.ID_Vendedor}" data-vendedor-name="${vendedor.Nombre}">Eliminar Vendedor</button>
                             <!-- Puedes agregar más información según tu diseño -->
@@ -76,6 +77,14 @@
             .catch(error => {
                 console.error('Error al obtener datos de vendedores:', error);
             });
+
+ // Agregar evento de clic para ver citas de vendedores
+ document.addEventListener('click', function (event) {
+    if (event.target.classList.contains('citi-vendedor')) {
+        const vendedorId = event.target.getAttribute('data-vendedor-id');
+        window.location.href = `cita_vendedor.html?id=${vendedorId}`; // Pasar el ID del vendedor en la URL
+    }
+});
 
 
            // Agregar evento de clic para editar vendedor
