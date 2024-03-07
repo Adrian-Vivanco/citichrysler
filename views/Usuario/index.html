@@ -59,29 +59,32 @@
         </form>
     </div>
 
-    <!-- Formulario para documentos -->
-    <div class="container mt-3" id="formDocumentos" style="display: none;">
-        <h3>Documentos</h3>
-        <form id="crearDocumentosForm">
-            <div class="mb-3">
-                <label for="pruebaManejoInput" class="form-label">Prueba de Manejo</label>
-                <input type="file" class="form-control" id="pruebaManejoInput" accept=".pdf">
-            </div>
-            <div class="mb-3">
-                <label for="comprobanteDomicilioInput" class="form-label">Comprobante de Domicilio</label>
-                <input type="file" class="form-control" id="comprobanteDomicilioInput" accept=".pdf">
-            </div>
-            <div class="mb-3">
-                <label for="identificacionOficialInput" class="form-label">Identificación Oficial</label>
-                <input type="file" class="form-control" id="identificacionOficialInput" accept=".pdf">
-            </div>
-            <div class="mb-3">
-                <label for="cotizacionInput" class="form-label">Cotización</label>
-                <input type="file" class="form-control" id="cotizacionInput" accept=".pdf">
-            </div>
-            <button type="submit" class="btn btn-primary">Guardar</button>
-        </form>
-    </div>
+
+    
+<!-- Formulario para documentos -->
+<div class="container mt-3" id="formDocumentos" style="display: none;">
+    <h3>Documentos</h3>
+    <form id="crearDocumentosForm" action="/Usuario/guardar_documentos" method="post">
+        <div class="mb-3">
+            <label for="pruebaManejoInput" class="form-label">Prueba de Manejo</label>
+            <input type="file" class="form-control" id="pruebaManejoInput" name="pruebaManejo" accept=".pdf">
+        </div>
+        <div class="mb-3">
+            <label for="comprobanteDomicilioInput" class="form-label">Comprobante de Domicilio</label>
+            <input type="file" class="form-control" id="comprobanteDomicilioInput" name="comprobanteDomicilio" accept=".pdf">
+        </div>
+        <div class="mb-3">
+            <label for="identificacionOficialInput" class="form-label">Identificación Oficial</label>
+            <input type="file" class="form-control" id="identificacionOficialInput" name="identificacionOficial" accept=".pdf">
+        </div>
+        <div class="mb-3">
+            <label for="cotizacionInput" class="form-label">Cotización</label>
+            <input type="file" class="form-control" id="cotizacionInput" name="cotizacion" accept=".pdf">
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+    </form>
+</div>
+
 
     <script>
         document.getElementById('crearCitaBtn').addEventListener('click', function() {
@@ -108,6 +111,62 @@
             // Lógica para obtener el ID de documentos del usuario
             return null; // Ejemplo de ID de documentos (vacío)
         }
+
+// Al seleccionar la opción de insertar documentos, mostrar el formulario de documentos
+document.getElementById('insertarDocumentosCheck').addEventListener('change', function() {
+    document.getElementById('formDocumentos').style.display = this.checked ? 'block' : 'none';
+});
+
+// Función para convertir archivo a base64
+function fileToBase64(file, callback) {
+    const reader = new FileReader();
+    reader.onloadend = function() {
+        callback(reader.result.split(',')[1]);
+    }
+    reader.readAsDataURL(file);
+}
+
+
+
+
+
+// Manejar el envío del formulario
+document.getElementById('crearDocumentosForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+    const promises = [];
+    for (const [key, value] of formData.entries()) {
+        if (value instanceof File) {
+            const promise = new Promise((resolve, reject) => {
+                fileToBase64(value, (base64) => {
+                    resolve([key, base64]);
+                });
+            });
+            promises.push(promise);
+        }
+    }
+    Promise.all(promises).then((results) => {
+        results.forEach(([key, base64]) => {
+            formData.set(key, base64);
+        });
+        fetch('/Usuario/guardar_documentos', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(data => {
+            console.log(data);
+            // Manejar la respuesta del servidor aquí
+        })
+        .catch(error => console.error('Error:', error));
+    });
+});
+
+
+
+
+
+
     </script>
 </body>
 </html>

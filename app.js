@@ -81,7 +81,7 @@ app.get('/consultar_vendedores', (req, res) => {
             console.error('Error al consultar vendedores:', error);
             return res.status(500).json({ error: 'Error interno del servidor' });
         }
-        // Convertir la imagen a Base64
+        // CONVERTIR IMAGEN A BASE64
         results.forEach(vendedor => {
             if (vendedor.Foto !== null) {
                 vendedor.Foto = Buffer.from(vendedor.Foto, 'binary').toString('base64');
@@ -362,6 +362,37 @@ app.put('/cambiar_estado_cita/:idCita/:nuevoEstado', (req, res) => {
 
 
 //MÓDULO DEL USUARIO 
+//CREAR CUENTA DE USUARIO
+app.post('/registro_usuario_nuevo', (req, res) => {
+    
+    const { Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password } = req.body;
+
+    console.log('Datos recibidos del formulario:');
+    console.log('Nombre:', Nombre);
+    console.log('Apellido Paterno:', A_Paterno);
+    console.log('Apellido Materno:', A_Materno);
+    console.log('Email:', Email);
+    console.log('Teléfono:', Telefono);
+    console.log('Nombre de Usuario:', Username);
+    
+   
+
+    connection.query('INSERT INTO usuario (Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, Fecha_Alta) VALUES (?, ?, ?, ?, ?, ?, ?, 3, NOW())', [Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, 3], (error, results) => {
+        if (error) {
+            console.error('Error al insertar usuario en la base de datos:', error);
+            return res.status(500).send('Error interno del servidor');
+        }
+        console.log('Cuenta creada exitosamente');
+        return res.status(200).send('Vendedor registrado exitosamente');
+    });
+    
+});
+
+
+
+
+
+
 // CONSULTAR CITAS POR USUARIO
 app.get('/consultar_citas_usuario', (req, res) => {
     if (req.session.user) {
@@ -440,7 +471,6 @@ app.post('/Usuario/procesar_formulario_cita', (req, res) => {
     console.log('ID_Usuario:', ID_Usuario);
     console.log('ID_Cita_Prioridad:', ID_Cita_Prioridad);
 
-    // Realizar la inserción en la base de datos
     const query = 'INSERT INTO citas (Asunto, ID_Usuario, ID_Cita_Pioridad, ID_Cita_Estado, Fecha_Cita, Fecha_Alta) VALUES (?, ?, ?, 1, ?, NOW())';
     connection.query(query, [Asunto, ID_Usuario, ID_Cita_Prioridad, Fecha_Cita], (error, results) => {
         if (error) {
@@ -452,25 +482,38 @@ app.post('/Usuario/procesar_formulario_cita', (req, res) => {
     });
 });
 
-// Ruta para guardar los documentos
+
+
+
+// INTERTAR DOCUMENTOS CON LA CITA
 app.post('/Usuario/guardar_documentos', (req, res) => {
     const { pruebaManejo, comprobanteDomicilio, identificacionOficial, cotizacion } = req.body;
     const ID_Usuario = req.session.user.ID_Usuario;
 
-    // Realizar la inserción en la base de datos
-    const query = 'INSERT INTO documentos (ID_Usuario, Prueba_Manejo, Comprobante_Domicilio, Identificacion_Oficial, Cotizacion, Fecha_Alta) VALUES (?, ?, ?, ?, ?, NOW())';
-    connection.query(query, [ID_Usuario, pruebaManejo, comprobanteDomicilio, identificacionOficial, cotizacion], (error, results) => {
+    // Primero, insertamos los documentos
+    const documentosQuery = 'INSERT INTO documentos (ID_Usuario, Prueba_Manejo, Comprobante_Domicilio, Identificacion_Oficial, Cotizacion, Fecha_Alta) VALUES (?, ?, ?, ?, ?, NOW())';
+    connection.query(documentosQuery, [ID_Usuario, pruebaManejo, comprobanteDomicilio, identificacionOficial, cotizacion], (error, documentosResult) => {
         if (error) {
             console.error('Error al guardar los documentos en la base de datos:', error);
             return res.status(500).send('Error interno del servidor');
         }
-        console.log('Documentos guardados exitosamente en la base de datos');
-        return res.status(200).send('Documentos guardados exitosamente');
+
+        // Obtener el ID_Documentos generado
+        const ID_Documentos = documentosResult.insertId;
+
+        // Ahora, insertamos la cita en la tabla citas con el ID_Documentos generado y ID_Prioridad = 1
+        const citaQuery = 'INSERT INTO citas (Asunto, ID_Usuario, Fecha_Cita, ID_Cita_Pioridad, ID_Documentos, Fecha_Alta) VALUES (?, ?, ?, ?, ?, NOW())';
+        connection.query(citaQuery, ['Cita generada automáticamente', ID_Usuario, new Date(), 1, ID_Documentos], (error, citaResult) => {
+            if (error) {
+                console.error('Error al guardar la cita en la base de datos:', error);
+                return res.status(500).send('Error interno del servidor');
+            }
+
+            console.log('Documentos y cita guardados exitosamente en la base de datos');
+            return res.status(200).send('Documentos y cita guardados exitosamente');
+        });
     });
 });
-
-
-
 
 
 
@@ -486,6 +529,18 @@ app.get('/obtener_datos_usuario_actual', (req, res) => {
         res.status(401).send('No se ha iniciado sesión');
     }
 });
+
+
+
+
+
+
+// RESTRINGIR ACCESO SI NO INICIARON SESIÓN 
+
+
+
+
+
 
 
 
