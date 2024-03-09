@@ -352,6 +352,80 @@ app.put('/cambiar_estado_cita/:idCita/:nuevoEstado', (req, res) => {
     });
 });
 
+// VENDEDOR CAMBIAR ASISTENCIA DE CITA
+app.put('/cambiar_asistencia_cita/:idCita/:nuevaAsistencia', (req, res) => {
+    const idCita = req.params.idCita;
+    const nuevaAsistencia = req.params.nuevaAsistencia;
+
+    connection.query('UPDATE citas SET ID_Cita_Asistencia = ? WHERE ID_Cita = ?', [nuevaAsistencia, idCita], (error, results) => {
+        if (error) {
+            console.error('Error al cambiar la asistencia de la cita:', error);
+            return res.status(500).send('Error interno del servidor');
+        }
+        console.log('Asistencia de la cita cambiada exitosamente');
+        return res.status(200).send('Asistencia de la cita cambiada exitosamente');
+    });
+});
+
+
+
+// VENDEDOR CAMBIA FECHA DE CITA
+app.put('/modificar_fecha_cita/:idCita', (req, res) => {
+    const idCita = req.params.idCita;
+    const nuevaFecha = req.body.nuevaFecha; // Aquí obtenemos la nueva fecha del cuerpo de la solicitud
+
+    connection.query('UPDATE citas SET Fecha_Cita = ? WHERE ID_Cita = ?', [nuevaFecha, idCita], (error, results) => {
+        if (error) {
+            console.error('Error al cambiar la fecha de la cita:', error);
+            return res.status(500).send('Error interno del servidor');
+        }
+        console.log('Fecha de la cita cambiada exitosamente');
+        return res.status(200).send('Fecha de la cita cambiada exitosamente');
+    });
+});
+
+
+
+
+// VENDEDOR VISUALIZA DOCUMENTOS DE CITA
+app.get('/obtener_documentos_cita/:idCita', (req, res) => {
+    const idCita = req.params.idCita;
+
+    // Consultar la base de datos para obtener los documentos asociados a la cita
+    const documentosQuery = `
+        SELECT d.Prueba_Manejo, d.Comprobante_Domicilio, d.Identificacion_Oficial, d.Cotizacion
+        FROM documentos d
+        INNER JOIN citas c ON d.ID_Documentos = c.ID_Documentos
+        WHERE c.ID_Cita = ?`;
+
+    connection.query(documentosQuery, [idCita], (error, documentosResult) => {
+        if (error) {
+            console.error('Error al obtener documentos de la cita:', error);
+            return res.status(500).send('Error interno del servidor');
+        }
+
+        // Convertir los datos Blob a base64
+        const documentosBase64 = documentosResult.map(documento => {
+            return {
+                Prueba_Manejo: documento.Prueba_Manejo.toString('base64'),
+                Comprobante_Domicilio: documento.Comprobante_Domicilio.toString('base64'),
+                Identificacion_Oficial: documento.Identificacion_Oficial.toString('base64'),
+                Cotizacion: documento.Cotizacion.toString('base64')
+            };
+        });
+
+        // Enviar los documentos como respuesta
+        res.json(documentosBase64);
+    });
+});
+
+
+
+
+
+
+
+
 
 
 

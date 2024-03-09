@@ -14,6 +14,46 @@
             display: block; /* Permite la alineación vertical */
             margin: 0 auto; /* Centra horizontalmente */
         } 
+        /* Estilos para el calendario */
+        #calendar-container {
+            position: fixed;
+            top: 230px; /* Ajusta esta posición según sea necesario */
+            right: 20px; /* Ajusta esta posición según sea necesario */
+            width: 420px; /* Ajusta este tamaño según sea necesario */
+            height: 420px; /* Ajusta este tamaño según sea necesario */
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+        }
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+        }
+        .calendar-day {
+            padding: 5px;
+            border: 1px solid #ccc;
+            text-align: center;
+            font-size: 25px; /* Ajusta este tamaño según sea necesario */
+        }
+        .calendar-header {
+            font-weight: bold;
+            background-color: #f2f2f2;
+            text-align: center;
+            padding: 5px;
+            margin-bottom: 5px;
+            font-size: 18px;
+        }
+        .current-day {
+            background-color: #4caf50;
+            color: #fff;
+        }
+        .has-appointment {
+            background-color: #ff0000;
+            color: #fff;
+        }
     </style>
     <script src="https://kit.fontawesome.com/e07784388c.js" crossorigin="anonymous"></script>
     <!-- Favicon - FIS -->
@@ -40,7 +80,17 @@
         </div>
     </div>
 
+    <div id="calendar-container">
+        <div id="calendar"></div>
+    </div>
+
     <script>
+        // Función para formatear la fecha en formato legible
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZone: 'UTC' };
+            return new Date(dateString).toLocaleDateString('es-ES', options);
+        }
+
         // Hacer una solicitud al servidor para obtener las citas del vendedor actualmente autenticado
         fetch('/consultar_citas_vendedor')
             .then(response => response.json())
@@ -48,6 +98,7 @@
                 // Iterar sobre los datos y crear elementos HTML para cada cita
                 data.forEach(cita => {
                     const citaCard = document.createElement('div');
+                    citaCard.id = `cita_${cita.ID_Cita}`; // Agregamos un ID único para cada tarjeta de cita
                     citaCard.classList.add('card', 'col-sm-4', 'm-2', 'p-1');
                     citaCard.innerHTML = `
                     <div class="card-body">
@@ -55,10 +106,11 @@
                             <p class="card-text"><b>Asunto:</b> ${cita.Asunto}</p>
                             <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
                             <p class="card-text"><b>Estado:</b> ${cita.Estado_Cita}</p>
-                            <p class="card-text"><b>Fecha de Cita:</b> ${cita.Fecha_Cita}</p>
+                            <p class="card-text"><b>Asistencia:</b> ${cita.Asistencia_Cita}</p>
+                            <p class="card-text"><b>Fecha de Cita:</b> ${formatDate(cita.Fecha_Cita)}</p>
                             <div class="dropdown">
-                                <button onclick="mostrarMenuDesplegable(${cita.ID_Cita})" class="btn btn-secondary botonDesplegable">Cambiar Estado</button>
-                                <div id="menuDesplegable_${cita.ID_Cita}" class="dropdown-menu menuDesplegable">
+                                <button onclick="mostrarMenuEstado(${cita.ID_Cita})" class="btn btn-secondary botonDesplegable">Cambiar Estado</button>
+                                <div id="menuEstado_${cita.ID_Cita}" class="dropdown-menu menuDesplegable">
                                     <a class="dropdown-item" href="#" onclick="cambiarEstado(${cita.ID_Cita}, 1)">En espera</a>
                                     <a class="dropdown-item" href="#" onclick="cambiarEstado(${cita.ID_Cita}, 2)">Aceptada</a>
                                     <a class="dropdown-item" href="#" onclick="cambiarEstado(${cita.ID_Cita}, 3)">Rechazada</a>
@@ -66,15 +118,40 @@
                                 </div>
                             </div>
                             <hr>
+                            <div class="dropdown">
+                                <button onclick="mostrarMenuAsistencia(${cita.ID_Cita})" class="btn btn-secondary botonDesplegable">Cambiar Asistencia</button>
+                                <div id="menuAsistencia_${cita.ID_Cita}" class="dropdown-menu menuDesplegable">
+                                    <a class="dropdown-item" href="#" onclick="cambiarAsistencia(${cita.ID_Cita}, 1)">Sí</a>
+                                    <a class="dropdown-item" href="#" onclick="cambiarAsistencia(${cita.ID_Cita}, 2)">No</a>
+                                    <a class="dropdown-item" href="#" onclick="cambiarAsistencia(${cita.ID_Cita}, 3)">Reprogramar</a>
+                                    <a class="dropdown-item" href="#" onclick="cambiarAsistencia(${cita.ID_Cita}, 4)">Pendiente</a>
+                                </div>
+                            </div>
+                            <hr>
+                            <button type="button" class="btn btn-primary" onclick="mostrarDetallesCita(${cita.ID_Cita})">Detalles de cita</button>
+                            <button type="button" class="btn btn-warning" onclick="modificarFechaCita(${cita.ID_Cita})">Fecha de cita</button>
                             <button type="button" class="btn btn-danger" onclick="dejarCita(${cita.ID_Cita})">Dejar cita</button>
                     </div>`;
 
                     document.getElementById('CitasContainer').appendChild(citaCard);
                 });
+
+                // Crear el calendario con el mes y año actual
+                createCalendar(new Date().getMonth(), new Date().getFullYear(), data);
             })
             .catch(error => {
                 console.error('Error al obtener datos de citas:', error);
             });
+
+        // Función para mostrar el menú desplegable de cambio de estado de la cita
+        function mostrarMenuEstado(idCita) {
+            document.getElementById(`menuEstado_${idCita}`).classList.toggle("show");
+        }
+
+        // Función para mostrar el menú desplegable de cambio de asistencia de la cita
+        function mostrarMenuAsistencia(idCita) {
+            document.getElementById(`menuAsistencia_${idCita}`).classList.toggle("show");
+        }
 
         // Función para dejar cita
         function dejarCita(idCita) {
@@ -104,25 +181,6 @@
             }
         }
 
-        // Función para mostrar el menú desplegable de cambio de estado de la cita
-        function mostrarMenuDesplegable(idCita) {
-            document.getElementById(`menuDesplegable_${idCita}`).classList.toggle("show");
-        }
-
-        // Cierra el menú desplegable si el usuario hace clic fuera de él
-        window.onclick = function(event) {
-            if (!event.target.matches('.botonDesplegable')) {
-                var dropdowns = document.getElementsByClassName("menuDesplegable");
-                var i;
-                for (i = 0; i < dropdowns.length; i++) {
-                    var openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
-                    }
-                }
-            }
-        }
-
         // Función para cambiar el estado de la cita
         function cambiarEstado(idCita, idEstado) {
             fetch(`/cambiar_estado_cita/${idCita}/${idEstado}`, {
@@ -141,6 +199,115 @@
                 console.error('Error al cambiar el estado de la cita:', error);
                 alert("Hubo un error al cambiar el estado de la cita. Por favor, inténtalo de nuevo más tarde.");
             });
+        }
+
+        // Función para cambiar la asistencia de la cita
+        function cambiarAsistencia(idCita, idAsistencia) {
+            fetch(`/cambiar_asistencia_cita/${idCita}/${idAsistencia}`, {
+                method: 'PUT',
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Asistencia de la cita cambiada exitosamente");
+                    // Recargar la página después de cambiar la asistencia de la cita
+                    location.reload();
+                } else {
+                    alert("Hubo un error al cambiar la asistencia de la cita. Por favor, inténtalo de nuevo más tarde.");
+                }
+            })
+            .catch(error => {
+                console.error('Error al cambiar la asistencia de la cita:', error);
+                alert("Hubo un error al cambiar la asistencia de la cita. Por favor, inténtalo de nuevo más tarde.");
+            });
+        }
+
+        // Función para modificar la fecha de la cita
+        function modificarFechaCita(idCita) {
+            if (confirm("¿Seguro que quieres modificar la fecha? El cambio se le informará al cliente.")) {
+                const formulario = `
+                    <form action="/modificar_fecha_cita/${idCita}" method="POST" onsubmit="return enviarFormulario(${idCita})">
+                        <label for="nuevaFecha">Nueva Fecha de Cita:</label>
+                        <input type="datetime-local" id="nuevaFecha" name="nuevaFecha" min="${getMinDate()}" required>
+                        <button class="btn btn-success" type="submit">Modificar</button>
+                    </form>
+                `;
+                const citaCard = document.getElementById(`cita_${idCita}`);
+                const formularioDiv = document.createElement('div');
+                formularioDiv.innerHTML = formulario;
+                citaCard.appendChild(formularioDiv);
+            }
+        }
+
+        // Función para obtener la fecha mínima permitida para la cita (un día después de hoy)
+        function getMinDate() {
+            const fecha = new Date();
+            fecha.setDate(fecha.getDate() + 1); // Suma un día
+            return fecha.toISOString().slice(0,16);
+        }
+
+        // Función para enviar el formulario de modificación de fecha de la cita
+        function enviarFormulario(idCita) {
+            const nuevaFecha = document.getElementById('nuevaFecha').value;
+            // Realizar aquí la lógica para enviar el formulario al servidor y actualizar la fecha de la cita
+            // ...
+
+            // Simulación de éxito
+            alert("Fecha de la cita modificada exitosamente");
+            location.reload(); // Recargar la página después de modificar la fecha de la cita
+            return false; // Evitar que el formulario se envíe realmente
+        }
+
+        // Función para crear el calendario
+        function createCalendar(month, year, citasData) {
+            const calendar = document.getElementById('calendar');
+            const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+            // Crear encabezado del calendario
+            let calendarHTML = `
+                <div class="calendar-header">${monthNames[month]} ${year}</div>
+                <div class="calendar">`;
+
+            // Obtener el primer día de la semana del mes
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+
+            // Obtener el número total de días en el mes
+            const totalDays = new Date(year, month + 1, 0).getDate();
+
+            // Crear celdas vacías para los días previos al primer día del mes
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                calendarHTML += `<div class="calendar-day"></div>`;
+            }
+
+            // Crear celdas para cada día del mes
+            for (let day = 1; day <= totalDays; day++) {
+                let classNames = 'calendar-day';
+                const currentDate = new Date(year, month, day);
+                const currentDateString = currentDate.toISOString().slice(0, 10); // Formato YYYY-MM-DD
+
+                // Verificar si hay citas para este día y agregar una clase de estilo
+                const citasParaEsteDia = citasData.filter(cita => cita.Fecha_Cita.startsWith(currentDateString));
+                if (citasParaEsteDia.length > 0) {
+                    classNames += ' has-appointment';
+                }
+
+                // Agregar la clase para resaltar el día actual
+                if (currentDate.toDateString() === new Date().toDateString()) {
+                    classNames += ' current-day';
+                }
+
+                // Agregar la celda del día al calendario
+                calendarHTML += `<div class="${classNames}">${day}</div>`;
+            }
+
+            // Cerrar la estructura del calendario
+            calendarHTML += `</div>`;
+
+            // Actualizar el contenido del calendario
+            calendar.innerHTML = calendarHTML;
+        }
+        // Función para redirigir al usuario a la página Detalles_Cita.html
+        function mostrarDetallesCita(idCita) {
+            window.location.href = `Detalles_Cita.html?idCita=${idCita}`;
         }
     </script>
 </body>

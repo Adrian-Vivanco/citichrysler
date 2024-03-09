@@ -13,6 +13,48 @@
 <!-- Favicon - FIS -->
 <link rel="shortcut icon" href="img/logo.png">
   <title>Vendedor</title>
+  <style>
+        /* Estilos para el calendario */
+        #calendar-container {
+            position: fixed;
+            top: 230px; /* Ajusta esta posición según sea necesario */
+            right: 20px; /* Ajusta esta posición según sea necesario */
+            width: 420px; /* Ajusta este tamaño según sea necesario */
+            height: 420px; /* Ajusta este tamaño según sea necesario */
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+        }
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+        }
+        .calendar-day {
+            padding: 5px;
+            border: 1px solid #ccc;
+            text-align: center;
+            font-size: 25px; /* Ajusta este tamaño según sea necesario */
+        }
+        .calendar-header {
+            font-weight: bold;
+            background-color: #f2f2f2;
+            text-align: center;
+            padding: 5px;
+            margin-bottom: 5px;
+            font-size: 18px;
+        }
+        .current-day {
+            background-color: #4caf50;
+            color: #fff;
+        }
+        .has-appointment {
+            background-color: #ff0000;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-dark bg-dark">
@@ -36,6 +78,10 @@
         <h2>Citas disponibles</h2>
         <div id="citasContainer" class="row">
         </div>
+    </div>
+
+    <div id="calendar-container">
+        <div id="calendar"></div>
     </div>
 
     <script>
@@ -71,6 +117,9 @@
     
                     document.getElementById('citasContainer').appendChild(citaCard);
                 });
+
+                // Crear el calendario con el mes y año actual
+                createCalendar(new Date().getMonth(), new Date().getFullYear(), data);
             })
             .catch(error => {
                 console.error('Error al obtener datos de citas:', error);
@@ -117,6 +166,61 @@ function verificarHoraCita(fechaCita) {
     // Si la diferencia de tiempo es menor a 1 hora, retornar falso
     return diferenciaHoras >= 1;
 }
-    </script>
+
+// Función para crear el calendario
+function createCalendar(month, year, citasData) {
+    const calendar = document.getElementById('calendar');
+    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+    // Crear encabezado del calendario
+    let calendarHTML = `
+        <div class="calendar-header">${monthNames[month]} ${year}</div>
+        <div class="calendar">`;
+
+    // Obtener el primer día de la semana del mes
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+
+    // Obtener el número total de días en el mes
+    const totalDays = new Date(year, month + 1, 0).getDate();
+
+    // Crear celdas para cada día del mes
+    let dayCounter = 1;
+    for (let i = 0; i < 6; i++) {
+        for (let j = 0; j < 7; j++) {
+            if ((i === 0 && j < firstDayOfMonth) || dayCounter > totalDays) {
+                calendarHTML += '<div class="calendar-day"></div>';
+            } else {
+                const currentDate = new Date();
+                const currentDay = currentDate.getDate();
+                const isCurrentMonth = currentDate.getMonth() === month;
+                const isCurrentDay = dayCounter === currentDay && isCurrentMonth;
+                const hasAppointment = citasData.some(cita => {
+                    const citaDate = new Date(cita.Fecha_Cita);
+                    return citaDate.getDate() === dayCounter && citaDate.getMonth() === month && citaDate.getFullYear() === year;
+                });
+                const classNames = ['calendar-day'];
+                if (isCurrentDay) classNames.push('current-day');
+                if (hasAppointment) classNames.push('has-appointment');
+                calendarHTML += `<div class="${classNames.join(' ')}">${dayCounter}</div>`;
+                dayCounter++;
+            }
+        }
+    }
+
+    // Cerrar contenedor del calendario
+    calendarHTML += '</div>';
+
+    // Agregar HTML generado al contenedor del calendario
+    calendar.innerHTML = calendarHTML;
+}
+
+// Obtener fecha actual
+const currentDate = new Date();
+const currentMonth = currentDate.getMonth();
+const currentYear = currentDate.getFullYear();
+
+// Crear calendario con el mes y año actual
+createCalendar(currentMonth, currentYear);
+</script>
 </body>
 </html>
