@@ -34,6 +34,19 @@
 
     <div class="container mt-5">
         <h2>Citas asignadas del vendedor</h2>
+        
+        <!-- Agregar el filtro de búsqueda por prioridad -->
+        <div class="mb-3 filter-container">
+            <label for="filtroPrioridad" class="form-label">Buscar citas por Prioridad:</label>
+            <select class="form-select" id="filtroPrioridad" onchange="filtrarCitas()">
+                <option value="">Todos</option>
+                <option value="Alta">Alta</option>
+                <option value="Media">Media</option>
+                <option value="Baja">Baja</option>
+            </select>
+        </div>
+        <!-- Fin del filtro de búsqueda por prioridad -->
+
         <div id="citasContainer" class="row">
             <!-- Aquí se cargarán las citas -->
         </div>
@@ -70,6 +83,22 @@
                 });
         } else {
             console.error('ID de vendedor no encontrado en la URL');
+        }
+
+        // Función para filtrar citas por prioridad
+        function filtrarCitas() {
+            const filtroPrioridad = document.getElementById('filtroPrioridad').value;
+            const citas = document.getElementById('citasContainer').querySelectorAll('.card');
+            
+            citas.forEach(cita => {
+                const prioridadCita = cita.querySelector('.card-text:nth-child(3)').innerText.split(':')[1].trim();
+                
+                if (filtroPrioridad === '' || prioridadCita === filtroPrioridad) {
+                    cita.style.display = 'block';
+                } else {
+                    cita.style.display = 'none';
+                }
+            });
         }
     </script>
 </body>

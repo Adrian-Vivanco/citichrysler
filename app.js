@@ -48,8 +48,11 @@ app.get('/', (req, res) => {
 //MODULO DEL ADMINISTRADOR
 //INSERTAR VENDEDOR 
 app.post('/Administrador/procesar_formulario', (req, res) => {
-    
     const { Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol } = req.body;
+    const imagenBase64 = req.body.Foto; // Capturando la imagen en base64 desde el formulario
+
+    // Convertir la imagen base64 a un buffer
+    const imageBuffer = Buffer.from(imagenBase64.replace(/^data:image\/\w+;base64,/, ''), 'base64');
 
     console.log('Datos recibidos del formulario:');
     console.log('Nombre:', Nombre);
@@ -60,17 +63,22 @@ app.post('/Administrador/procesar_formulario', (req, res) => {
     console.log('Nombre de Usuario:', Username);
     console.log('Contraseña:', Password);
     console.log('ID Rol:', ID_Rol);
+    console.log('Imagen:', imagenBase64); // Solo para verificar que la imagen se recibe correctamente
 
-    connection.query('INSERT INTO vendedor (Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, Fecha_Alta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())', [Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol], (error, results) => {
-        if (error) {
-            console.error('Error al insertar vendedor en la base de datos:', error);
-            return res.status(500).send('Error interno del servidor');
+    // Insertar los datos del vendedor en la base de datos junto con la imagen en formato BLOB
+    connection.query('INSERT INTO vendedor (Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, Foto, Fecha_Alta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+        [Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, imageBuffer],
+        (error, results) => {
+            if (error) {
+                console.error('Error al insertar vendedor en la base de datos:', error);
+                return res.status(500).send('Error interno del servidor');
+            }
+            console.log('Vendedor registrado exitosamente en la base de datos');
+            return res.status(200).send('Vendedor registrado exitosamente');
         }
-        console.log('Vendedor registrado exitosamente en la base de datos');
-        return res.status(200).send('Vendedor registrado exitosamente');
-    });
-    
+    );
 });
+
 
 
 
@@ -391,33 +399,96 @@ app.put('/modificar_fecha_cita/:idCita', (req, res) => {
 app.get('/obtener_documentos_cita/:idCita', (req, res) => {
     const idCita = req.params.idCita;
 
-    // Consultar la base de datos para obtener los documentos asociados a la cita
-    const documentosQuery = `
-        SELECT d.Prueba_Manejo, d.Comprobante_Domicilio, d.Identificacion_Oficial, d.Cotizacion
-        FROM documentos d
-        INNER JOIN citas c ON d.ID_Documentos = c.ID_Documentos
-        WHERE c.ID_Cita = ?`;
-
-    connection.query(documentosQuery, [idCita], (error, documentosResult) => {
+    connection.query(`
+    SELECT 
+        CONVERT(d.Prueba_Manejo USING utf8) AS Prueba_Manejo,
+        CONVERT(d.Comprobante_Domicilio USING utf8) AS Comprobante_Domicilio,
+        CONVERT(d.Identificacion_Oficial USING utf8) AS Identificacion_Oficial,
+        CONVERT(d.Cotizacion USING utf8) AS Cotizacion
+    FROM 
+        citas c
+    LEFT JOIN 
+        documentos d ON c.ID_Documentos = d.ID_Documentos
+    WHERE
+        c.ID_Cita = ?
+    `, [idCita], (error, results) => {
         if (error) {
             console.error('Error al obtener documentos de la cita:', error);
-            return res.status(500).send('Error interno del servidor');
+            return res.status(500).json({ error: 'Error interno del servidor' });
         }
 
-        // Convertir los datos Blob a base64
-        const documentosBase64 = documentosResult.map(documento => {
-            return {
-                Prueba_Manejo: documento.Prueba_Manejo.toString('base64'),
-                Comprobante_Domicilio: documento.Comprobante_Domicilio.toString('base64'),
-                Identificacion_Oficial: documento.Identificacion_Oficial.toString('base64'),
-                Cotizacion: documento.Cotizacion.toString('base64')
-            };
-        });
+        // Convertir los resultados a base64
+        const documentosBase64 = {};
 
-        // Enviar los documentos como respuesta
+        // Verificar si los valores no son null antes de convertirlos a base64
+        if (results[0].Prueba_Manejo !== null) {
+            documentosBase64.Prueba_Manejo = Buffer.from(results[0].Prueba_Manejo).toString('base64');
+        }
+        if (results[0].Comprobante_Domicilio !== null) {
+            documentosBase64.Comprobante_Domicilio = Buffer.from(results[0].Comprobante_Domicilio).toString('base64');
+        }
+        if (results[0].Identificacion_Oficial !== null) {
+            documentosBase64.Identificacion_Oficial = Buffer.from(results[0].Identificacion_Oficial).toString('base64');
+        }
+        if (results[0].Cotizacion !== null) {
+            documentosBase64.Cotizacion = Buffer.from(results[0].Cotizacion).toString('base64');
+        }
+
         res.json(documentosBase64);
     });
 });
+
+// VENDEDOR CONSULTA POR FILTRO ESTADO
+app.get('/consultar_citas_vendedor_estado/:estado', (req, res) => {
+    if (req.session.user) {
+        const vendedorId = req.session.user.ID_Vendedor;
+        const estado = req.params.estado;
+
+        connection.query(`
+            SELECT 
+                c.ID_Cita, 
+                c.Asunto, 
+                CONCAT(u.Nombre, ' ', u.A_Paterno, ' ', u.A_Materno) AS Nombre_Usuario,
+                CONCAT(v.Nombre, ' ', v.A_Paterno, ' ', v.A_Materno) AS Nombre_Vendedor, 
+                ce.Estado AS Estado_Cita, 
+                ca.Asistencia_Estado AS Asistencia_Cita, 
+                cp.Pioridad AS Pioridad_Cita, 
+                d.Prueba_Manejo, 
+                d.Comprobante_Domicilio, 
+                d.Identificacion_Oficial, 
+                d.Cotizacion, 
+                c.Fecha_Cita, 
+                c.Fecha_Alta
+            FROM 
+                citas c
+            LEFT JOIN 
+                usuario u ON c.ID_Usuario = u.ID_Usuario
+            LEFT JOIN 
+                vendedor v ON c.ID_Vendedor = v.ID_Vendedor
+            LEFT JOIN 
+                cita_estado ce ON c.ID_Cita_Estado = ce.ID_Cita_Estado
+            LEFT JOIN 
+                cita_asistencia ca ON c.ID_Cita_Asistencia = ca.ID_Cita_Asistencia
+            LEFT JOIN 
+                cita_pioridad cp ON c.ID_Cita_Pioridad = cp.ID_Cita_Pioridad
+            LEFT JOIN 
+                documentos d ON c.ID_Documentos = d.ID_Documentos
+            WHERE 
+                c.ID_Vendedor = ? AND
+                ce.Estado = ?
+        `, [vendedorId, estado], (error, results) => {
+            if (error) {
+                console.error('Error al consultar citas del vendedor por estado:', error);
+                return res.status(500).json({ error: 'Error interno del servidor' });
+            }
+            
+            res.json(results);
+        });
+    } else {
+        res.status(401).send('No se ha iniciado sesión');
+    }
+});
+
 
 
 

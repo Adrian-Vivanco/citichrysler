@@ -20,7 +20,7 @@
             top: 230px; /* Ajusta esta posición según sea necesario */
             right: 20px; /* Ajusta esta posición según sea necesario */
             width: 420px; /* Ajusta este tamaño según sea necesario */
-            height: 420px; /* Ajusta este tamaño según sea necesario */
+            height: 520px; /* Ajusta este tamaño según sea necesario */
             background-color: #fff;
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -75,6 +75,31 @@
 
     <div class="container mt-5">
         <h2>Mis Citas</h2>
+        <!-- Agregar el filtro de búsqueda por estado -->
+        <div class="mb-3" style="width: 200px; margin-bottom: 20px;">
+            <label for="filtroEstado" class="form-label">Filtrar por Estado de la cita:</label>
+            <select class="form-select" id="filtroEstado" onchange="filtrarCitas()">
+                <option value="">Todos</option>
+                <option value="En espera">En espera</option>
+                <option value="Aceptada">Aceptada</option>
+                <option value="Rechazada">Rechazada</option>
+                <option value="Finalizada">Finalizada</option>
+            </select>
+        </div>
+        <!-- Fin del filtro de búsqueda por estado -->
+
+        <!-- Agregar el filtro de búsqueda por prioridad -->
+        <div class="mb-3" style="width: 200px; margin-bottom: 20px;">
+            <label for="filtroPrioridad" class="form-label">Filtrar por Prioridad de la cita:</label>
+            <select class="form-select" id="filtroPrioridad" onchange="filtrarCitas()">
+                <option value="">Todos</option>
+                <option value="Alta">Alta</option>
+                <option value="Media">Media</option>
+                <option value="Baja">Baja</option>
+            </select>
+        </div>
+        <!-- Fin del filtro de búsqueda por prioridad -->
+        
         <div id="CitasContainer" class="row">
             <!-- Aquí se cargarán las citas -->
         </div>
@@ -87,61 +112,88 @@
     <script>
         // Función para formatear la fecha en formato legible
         function formatDate(dateString) {
-            const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZone: 'UTC' };
-            return new Date(dateString).toLocaleDateString('es-ES', options);
+            const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZone: 'America/Mexico_City' };
+            return new Date(dateString).toLocaleString('es-MX', options);
         }
 
         // Hacer una solicitud al servidor para obtener las citas del vendedor actualmente autenticado
         fetch('/consultar_citas_vendedor')
             .then(response => response.json())
             .then(data => {
-                // Iterar sobre los datos y crear elementos HTML para cada cita
-                data.forEach(cita => {
-                    const citaCard = document.createElement('div');
-                    citaCard.id = `cita_${cita.ID_Cita}`; // Agregamos un ID único para cada tarjeta de cita
-                    citaCard.classList.add('card', 'col-sm-4', 'm-2', 'p-1');
-                    citaCard.innerHTML = `
-                    <div class="card-body">
-                            <h5 class="card-title">${cita.Nombre_Usuario}  </h5>
-                            <p class="card-text"><b>Asunto:</b> ${cita.Asunto}</p>
-                            <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
-                            <p class="card-text"><b>Estado:</b> ${cita.Estado_Cita}</p>
-                            <p class="card-text"><b>Asistencia:</b> ${cita.Asistencia_Cita}</p>
-                            <p class="card-text"><b>Fecha de Cita:</b> ${formatDate(cita.Fecha_Cita)}</p>
-                            <div class="dropdown">
-                                <button onclick="mostrarMenuEstado(${cita.ID_Cita})" class="btn btn-secondary botonDesplegable">Cambiar Estado</button>
-                                <div id="menuEstado_${cita.ID_Cita}" class="dropdown-menu menuDesplegable">
-                                    <a class="dropdown-item" href="#" onclick="cambiarEstado(${cita.ID_Cita}, 1)">En espera</a>
-                                    <a class="dropdown-item" href="#" onclick="cambiarEstado(${cita.ID_Cita}, 2)">Aceptada</a>
-                                    <a class="dropdown-item" href="#" onclick="cambiarEstado(${cita.ID_Cita}, 3)">Rechazada</a>
-                                    <a class="dropdown-item" href="#" onclick="cambiarEstado(${cita.ID_Cita}, 4)">Finalizada</a>
-                                </div>
-                            </div>
-                            <hr>
-                            <div class="dropdown">
-                                <button onclick="mostrarMenuAsistencia(${cita.ID_Cita})" class="btn btn-secondary botonDesplegable">Cambiar Asistencia</button>
-                                <div id="menuAsistencia_${cita.ID_Cita}" class="dropdown-menu menuDesplegable">
-                                    <a class="dropdown-item" href="#" onclick="cambiarAsistencia(${cita.ID_Cita}, 1)">Sí</a>
-                                    <a class="dropdown-item" href="#" onclick="cambiarAsistencia(${cita.ID_Cita}, 2)">No</a>
-                                    <a class="dropdown-item" href="#" onclick="cambiarAsistencia(${cita.ID_Cita}, 3)">Reprogramar</a>
-                                    <a class="dropdown-item" href="#" onclick="cambiarAsistencia(${cita.ID_Cita}, 4)">Pendiente</a>
-                                </div>
-                            </div>
-                            <hr>
-                            <button type="button" class="btn btn-primary" onclick="mostrarDetallesCita(${cita.ID_Cita})">Detalles de cita</button>
-                            <button type="button" class="btn btn-warning" onclick="modificarFechaCita(${cita.ID_Cita})">Fecha de cita</button>
-                            <button type="button" class="btn btn-danger" onclick="dejarCita(${cita.ID_Cita})">Dejar cita</button>
-                    </div>`;
-
-                    document.getElementById('CitasContainer').appendChild(citaCard);
-                });
-
-                // Crear el calendario con el mes y año actual
-                createCalendar(new Date().getMonth(), new Date().getFullYear(), data);
+                mostrarCitas(data); // Mostrar todas las citas al cargar la página
+                createCalendar(new Date().getMonth(), new Date().getFullYear(), data); // Generar el calendario
             })
             .catch(error => {
                 console.error('Error al obtener datos de citas:', error);
             });
+
+        // Función para mostrar citas filtradas por estado y prioridad
+        function filtrarCitas() {
+            const filtroEstado = document.getElementById('filtroEstado').value;
+            const filtroPrioridad = document.getElementById('filtroPrioridad').value;
+            fetch('/consultar_citas_vendedor')
+                .then(response => response.json())
+                .then(data => {
+                    let citasFiltradas = data;
+                    // Filtrar por estado
+                    if (filtroEstado) {
+                        citasFiltradas = citasFiltradas.filter(cita => cita.Estado_Cita === filtroEstado);
+                    }
+                    // Filtrar por prioridad
+                    if (filtroPrioridad) {
+                        citasFiltradas = citasFiltradas.filter(cita => cita.Pioridad_Cita === filtroPrioridad);
+                    }
+                    mostrarCitas(citasFiltradas);
+                    createCalendar(new Date().getMonth(), new Date().getFullYear(), citasFiltradas);
+                })
+                .catch(error => {
+                    console.error('Error al obtener datos de citas:', error);
+                });
+        }
+
+        // Función para mostrar las citas en el contenedor correspondiente
+        function mostrarCitas(citas) {
+            const citasContainer = document.getElementById('CitasContainer');
+            citasContainer.innerHTML = '';
+            citas.forEach(cita => {
+                const citaCard = document.createElement('div');
+                citaCard.id = `cita_${cita.ID_Cita}`; // Agregamos un ID único para cada tarjeta de cita
+                citaCard.classList.add('card', 'col-sm-4', 'm-2', 'p-1');
+                citaCard.innerHTML = `
+                    <div class="card-body">
+                        <h5 class="card-title">${cita.Nombre_Usuario}  </h5>
+                        <p class="card-text"><b>Asunto:</b> ${cita.Asunto}</p>
+                        <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
+                        <p class="card-text"><b>Estado:</b> ${cita.Estado_Cita}</p>
+                        <p class="card-text"><b>Asistencia:</b> ${cita.Asistencia_Cita}</p>
+                        <p class="card-text"><b>Fecha de Cita:</b> ${formatDate(cita.Fecha_Cita)}</p>
+                        <div class="dropdown">
+                            <button onclick="mostrarMenuEstado(${cita.ID_Cita})" class="btn btn-secondary botonDesplegable">Cambiar Estado</button>
+                            <div id="menuEstado_${cita.ID_Cita}" class="dropdown-menu menuDesplegable">
+                                <a class="dropdown-item" href="#" onclick="cambiarEstado(${cita.ID_Cita}, 1)">En espera</a>
+                                <a class="dropdown-item" href="#" onclick="cambiarEstado(${cita.ID_Cita}, 2)">Aceptada</a>
+                                <a class="dropdown-item" href="#" onclick="cambiarEstado(${cita.ID_Cita}, 3)">Rechazada</a>
+                                <a class="dropdown-item" href="#" onclick="cambiarEstado(${cita.ID_Cita}, 4)">Finalizada</a>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="dropdown">
+                            <button onclick="mostrarMenuAsistencia(${cita.ID_Cita})" class="btn btn-secondary botonDesplegable">Cambiar Asistencia</button>
+                            <div id="menuAsistencia_${cita.ID_Cita}" class="dropdown-menu menuDesplegable">
+                                <a class="dropdown-item" href="#" onclick="cambiarAsistencia(${cita.ID_Cita}, 1)">Sí</a>
+                                <a class="dropdown-item" href="#" onclick="cambiarAsistencia(${cita.ID_Cita}, 2)">No</a>
+                                <a class="dropdown-item" href="#" onclick="cambiarAsistencia(${cita.ID_Cita}, 3)">Reprogramar</a>
+                                <a class="dropdown-item" href="#" onclick="cambiarAsistencia(${cita.ID_Cita}, 4)">Pendiente</a>
+                            </div>
+                        </div>
+                        <hr>
+                        <button type="button" class="btn btn-primary" onclick="mostrarDetallesCita(${cita.ID_Cita})">Detalles de cita</button>
+                        <button type="button" class="btn btn-warning" onclick="modificarFechaCita(${cita.ID_Cita})">Fecha de cita</button>
+                        <button type="button" class="btn btn-danger" onclick="dejarCita(${cita.ID_Cita})">Dejar cita</button>
+                    </div>`;
+                citasContainer.appendChild(citaCard);
+            });
+        }
 
         // Función para mostrar el menú desplegable de cambio de estado de la cita
         function mostrarMenuEstado(idCita) {
@@ -257,57 +309,49 @@
             return false; // Evitar que el formulario se envíe realmente
         }
 
-        // Función para crear el calendario
-        function createCalendar(month, year, citasData) {
-            const calendar = document.getElementById('calendar');
-            const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-
-            // Crear encabezado del calendario
-            let calendarHTML = `
-                <div class="calendar-header">${monthNames[month]} ${year}</div>
-                <div class="calendar">`;
-
-            // Obtener el primer día de la semana del mes
-            const firstDayOfMonth = new Date(year, month, 1).getDay();
-
-            // Obtener el número total de días en el mes
-            const totalDays = new Date(year, month + 1, 0).getDate();
-
-            // Crear celdas vacías para los días previos al primer día del mes
-            for (let i = 0; i < firstDayOfMonth; i++) {
-                calendarHTML += `<div class="calendar-day"></div>`;
-            }
-
-            // Crear celdas para cada día del mes
-            for (let day = 1; day <= totalDays; day++) {
-                let classNames = 'calendar-day';
-                const currentDate = new Date(year, month, day);
-                const currentDateString = currentDate.toISOString().slice(0, 10); // Formato YYYY-MM-DD
-
-                // Verificar si hay citas para este día y agregar una clase de estilo
-                const citasParaEsteDia = citasData.filter(cita => cita.Fecha_Cita.startsWith(currentDateString));
-                if (citasParaEsteDia.length > 0) {
-                    classNames += ' has-appointment';
-                }
-
-                // Agregar la clase para resaltar el día actual
-                if (currentDate.toDateString() === new Date().toDateString()) {
-                    classNames += ' current-day';
-                }
-
-                // Agregar la celda del día al calendario
-                calendarHTML += `<div class="${classNames}">${day}</div>`;
-            }
-
-            // Cerrar la estructura del calendario
-            calendarHTML += `</div>`;
-
-            // Actualizar el contenido del calendario
-            calendar.innerHTML = calendarHTML;
-        }
-        // Función para redirigir al usuario a la página Detalles_Cita.html
+        // Función para mostrar detalles de la cita
         function mostrarDetallesCita(idCita) {
-            window.location.href = `Detalles_Cita.html?idCita=${idCita}`;
+            // Aquí puedes implementar la lógica para mostrar los detalles de la cita en un modal o en una nueva página
+            alert("Mostrar detalles de la cita con ID: " + idCita);
+        }
+
+        // Función para crear el calendario
+        function createCalendar(month, year, citas) {
+            const weekdays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+            const calendarContainer = document.getElementById('calendar');
+            const firstDayOfMonth = new Date(year, month, 1);
+            const lastDayOfMonth = new Date(year, month + 1, 0);
+            const startingDay = firstDayOfMonth.getDay();
+            const daysInMonth = lastDayOfMonth.getDate();
+
+            calendarContainer.innerHTML = '';
+            calendarContainer.insertAdjacentHTML('beforeend', `
+                <div class="calendar-header">${firstDayOfMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}</div>
+                <div class="calendar">
+                    ${weekdays.map(day => `<div class="calendar-day">${day}</div>`).join('')}
+                    ${Array(startingDay)
+                        .fill('<div class="calendar-day"></div>')
+                        .join('')}
+                    ${Array.from({ length: daysInMonth }, (_, index) => {
+                        const day = index + 1;
+                        const date = new Date(year, month, day);
+                        const citasEnFecha = citas.filter(cita => {
+                            const citaDate = new Date(cita.Fecha_Cita);
+                            return citaDate.getFullYear() === year && citaDate.getMonth() === month && citaDate.getDate() === day;
+                        });
+                        const hasAppointments = citasEnFecha.length > 0;
+                        const hasCurrentDate = date.toDateString() === new Date().toDateString();
+
+                        return `
+                            <div class="calendar-day ${hasAppointments ? 'has-appointment' : ''} ${hasCurrentDate ? 'current-day' : ''}">
+                                ${day}
+                                ${hasAppointments ? `<div class="appointment-count">${citasEnFecha.length}</div>` : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `);
         }
     </script>
 </body>

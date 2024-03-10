@@ -18,9 +18,9 @@
                 CitiChrysler  
             </a>
             <a href="registro_vendedor.html" id="empresa" class="btn text-light text-opacity-50 fs-5 ">Registrar Vendedores<i class="fa-solid fa-briefcase"></i></a>
-          <a href="consulta_vendedores.html" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Consulta Vendedores<i class="fa-solid fa-clipboard-list"></i></a>
-          <a href="mis_datos.html" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Mis Datos<i class="fa-solid fa-clipboard-list"></i></a>
-          <a href="#" id="empleados" class="btn text-light text-opacity-50 fs-5 ">Cerrar sesión<i class="fa-solid fa-person-walking-luggage"></i></a>
+            <a href="consulta_vendedores.html" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Consulta Vendedores<i class="fa-solid fa-clipboard-list"></i></a>
+            <a href="mis_datos.html" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Mis Datos<i class="fa-solid fa-clipboard-list"></i></a>
+            <a href="#" id="empleados" class="btn text-light text-opacity-50 fs-5 ">Cerrar sesión<i class="fa-solid fa-person-walking-luggage"></i></a>
         </div>
     </nav>
 
@@ -50,6 +50,7 @@
             <div class="mb-3">
                 <label for="Foto" class="form-label">Foto</label>
                 <input type="file" class="form-control" id="Foto" name="Foto" required accept="image/*">
+                <img id="imagenPrevista" src="#" alt="Vista previa de la imagen" style="max-width: 200px; max-height: 200px;">
             </div>
             <div class="mb-3">
                 <label for="Username" class="form-label">Nombre de Usuario</label>
@@ -71,6 +72,24 @@
             <button type="submit" class="btn btn-primary" id="btnRegistrar">Registrar Vendedor</button>
         </form>
     </div>
-    
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function convertirImagenABase64(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    $('#imagenPrevista').attr('src', e.target.result);
+                }
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $("#Foto").change(function(){
+            convertirImagenABase64(this);
+        });
+    </script>
 </body>
-</html>        
+</html>

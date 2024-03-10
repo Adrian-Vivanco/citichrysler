@@ -1,54 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles de la cita</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="../css/bootstrap.min.css">
-    <script src="../js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="../css/bg.css">
+    <!-- Font Awesome -->
     <script src="https://kit.fontawesome.com/e07784388c.js" crossorigin="anonymous"></script>
-    <!-- Favicon - FIS -->
-    <link rel="shortcut icon" href="img/logo.png">
-    <title>Detalles de la cita</title>
+    <!-- Estilos CSS personalizados -->
     <style>
-        /* Estilos para el calendario */
-        #calendar-container {
-            position: fixed;
-            top: 230px; /* Ajusta esta posición según sea necesario */
-            right: 20px; /* Ajusta esta posición según sea necesario */
-            width: 420px; /* Ajusta este tamaño según sea necesario */
-            height: 420px; /* Ajusta este tamaño según sea necesario */
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+        .document-container {
+            margin-bottom: 20px;
         }
-        .calendar {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 1px;
-        }
-        .calendar-day {
-            padding: 5px;
-            border: 1px solid #ccc;
-            text-align: center;
-            font-size: 25px; /* Ajusta este tamaño según sea necesario */
-        }
-        .calendar-header {
-            font-weight: bold;
-            background-color: #f2f2f2;
-            text-align: center;
-            padding: 5px;
-            margin-bottom: 5px;
-            font-size: 18px;
-        }
-        .current-day {
-            background-color: #4caf50;
-            color: #fff;
-        }
-        .has-appointment {
-            background-color: #ff0000;
-            color: #fff;
+        .document-container img {
+            max-width: 100%;
+            height: auto;
         }
     </style>
 </head>
@@ -66,28 +33,25 @@
     </nav>
     <div class="container mt-5">
         <h2>Detalles de la cita</h2>
-        <div id="documentosContainer" class="row">
-            <div id="pruebaManejoContainer" class="col-md-6">
-                <!-- Aquí se mostrará el documento de Prueba de Manejo -->
-            </div>
-            <div id="comprobanteDomicilioContainer" class="col-md-6">
-                <!-- Aquí se mostrará el documento de Comprobante de Domicilio -->
-            </div>
-            <div id="identificacionOficialContainer" class="col-md-6">
-                <!-- Aquí se mostrará el documento de Identificación Oficial -->
-            </div>
-            <div id="cotizacionContainer" class="col-md-6">
-                <!-- Aquí se mostrará el documento de Cotización -->
-            </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Prueba de Manejo</th>
+                        <th>Comprobante de Domicilio</th>
+                        <th>Identificación Oficial</th>
+                        <th>Cotización</th>
+                    </tr>
+                </thead>
+                <tbody id="documentosContainer">
+                    <!-- Aquí se mostrarán los documentos -->
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <div id="calendar-container">
-        <div id="calendar"></div>
-    </div>
-
     <script>
-        // Función para cargar y mostrar los documentos PDF asociados a la cita
+        // Función para cargar y mostrar los documentos en forma de imagen asociados a la cita
         function cargarDocumentos(idCita) {
             fetch(`/obtener_documentos_cita/${idCita}`)
             .then(response => response.json())
@@ -96,54 +60,56 @@
                 documentosContainer.innerHTML = ''; // Limpiar el contenedor de documentos
 
                 if (data.length === 0) {
-                    const noDocumentosMessage = document.createElement('p');
-                    noDocumentosMessage.textContent = 'No se ha mandado documentación a esta cita';
-                    documentosContainer.appendChild(noDocumentosMessage);
+                    const noDocumentosRow = document.createElement('tr');
+                    noDocumentosRow.innerHTML = '<td colspan="4">No se mandaron documentos a esta cita</td>';
+                    documentosContainer.appendChild(noDocumentosRow);
                 } else {
+                    // Crear una fila para cada documento
+                    const documentRow = document.createElement('tr');
+
+                    // Iterar sobre cada documento y crear celdas con las imágenes correspondientes
                     data.forEach(documento => {
-                        // Crea un elemento object para cada documento y configúralo con los datos correspondientes
-                        const documentoElement = document.createElement('object');
-                        documentoElement.setAttribute('type', 'application/pdf');
-                        documentoElement.setAttribute('data', `data:application/pdf;base64,${documento.Prueba_Manejo || documento.Comprobante_Domicilio || documento.Identificacion_Oficial || documento.Cotizacion}`);
-                        documentoElement.setAttribute('width', '100%');
-                        documentoElement.setAttribute('height', '600');
-
-                        // Determina el contenedor adecuado para cada tipo de documento
-                        let contenedor;
-                        if (documento.Prueba_Manejo) {
-                            contenedor = document.getElementById('pruebaManejoContainer');
-                        } else if (documento.Comprobante_Domicilio) {
-                            contenedor = document.getElementById('comprobanteDomicilioContainer');
-                        } else if (documento.Identificacion_Oficial) {
-                            contenedor = document.getElementById('identificacionOficialContainer');
-                        } else if (documento.Cotizacion) {
-                            contenedor = document.getElementById('cotizacionContainer');
+                        // Para cada tipo de documento, crear una celda
+                        const documentCell = document.createElement('td');
+                        const documentImage = document.createElement('img');
+                        // Asignar la imagen correspondiente al tipo de documento
+                        switch (documento.TipoDocumento) {
+                            case 'Prueba_Manejo':
+                                documentImage.src = `data:image/png;base64,${documento.Prueba_Manejo}`;
+                                break;
+                            case 'Comprobante_Domicilio':
+                                documentImage.src = `data:image/png;base64,${documento.Comprobante_Domicilio}`;
+                                break;
+                            case 'Identificacion_Oficial':
+                                documentImage.src = `data:image/png;base64,${documento.Identificacion_Oficial}`;
+                                break;
+                            case 'Cotizacion':
+                                documentImage.src = `data:image/png;base64,${documento.Cotizacion}`;
+                                break;
                         }
-
-                        // Agrega el elemento object al contenedor correspondiente
-                        if (contenedor) {
-                            contenedor.appendChild(documentoElement);
-                        }
+                        documentImage.classList.add('document-image');
+                        documentCell.appendChild(documentImage);
+                        documentRow.appendChild(documentCell);
                     });
+
+                    // Agregar la fila al contenedor de documentos
+                    documentosContainer.appendChild(documentRow);
                 }
             })
             .catch(error => {
                 console.error('Error al cargar los documentos:', error);
                 const documentosContainer = document.getElementById('documentosContainer');
-                documentosContainer.innerHTML = '<p>Error al cargar los documentos</p>';
+                documentosContainer.innerHTML = '<tr><td colspan="4">Error al cargar los documentos</td></tr>';
             });
         }
 
-        // Llamar a la función para cargar los documentos cuando se cargue la página
-        window.onload = function() {
-            // Obtener el ID de la cita de la URL (suponiendo que esté en el formato /Detalles_Cita.html?idCita=123)
-            const urlParams = new URLSearchParams(window.location.search);
-            const idCita = urlParams.get('idCita');
-            if (idCita) {
-                cargarDocumentos(idCita);
-            } else {
-                console.error('ID de cita no encontrado en la URL');
-            }
+        // Obtener el ID de la cita de la URL (suponiendo que esté en el formato /Detalles_Cita.html?idCita=123)
+        const urlParams = new URLSearchParams(window.location.search);
+        const idCita = urlParams.get('idCita');
+        if (idCita) {
+            cargarDocumentos(idCita);
+        } else {
+            console.error('ID de cita no encontrado en la URL');
         };
     </script>
 </body>
