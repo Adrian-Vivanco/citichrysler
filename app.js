@@ -519,19 +519,34 @@ app.post('/registro_usuario_nuevo', (req, res) => {
     console.log('Email:', Email);
     console.log('Teléfono:', Telefono);
     console.log('Nombre de Usuario:', Username);
-    
-   
 
-    connection.query('INSERT INTO usuario (Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, Fecha_Alta) VALUES (?, ?, ?, ?, ?, ?, ?, 3, NOW())', [Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, 3], (error, results) => {
+    // Verificar si el nombre de usuario ya existe en la base de datos
+    connection.query('SELECT COUNT(*) AS count FROM usuario WHERE Username = ?', [Username], (error, results) => {
         if (error) {
-            console.error('Error al insertar usuario en la base de datos:', error);
+            console.error('Error al verificar el nombre de usuario:', error);
             return res.status(500).send('Error interno del servidor');
         }
-        console.log('Cuenta creada exitosamente');
-        return res.status(200).send('Vendedor registrado exitosamente');
+
+        const count = results[0].count;
+        if (count > 0) {
+            console.log('El nombre de usuario ya está en uso');
+            return res.status(400).send('El nombre de usuario ya está en uso');
+        }
+
+        // Si el nombre de usuario no está en uso, insertarlo en la base de datos
+        connection.query('INSERT INTO usuario (Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, Fecha_Alta) VALUES (?, ?, ?, ?, ?, ?, ?, 3, NOW())', [Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, 3], (error, results) => {
+            if (error) {
+                console.error('Error al insertar usuario en la base de datos:', error);
+                return res.status(500).send('Error interno del servidor');
+            }
+            console.log('Cuenta creada exitosamente');
+            // Redireccionar al usuario a login.html después de insertar los datos en la base de datos
+            res.redirect('/login.html');
+        });
     });
-    
 });
+
+
 
 
 
