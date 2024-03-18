@@ -8,6 +8,8 @@
     <script src="../js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="../css/bg.css">
     <script src="https://kit.fontawesome.com/e07784388c.js" crossorigin="anonymous"></script>
+    <!-- Incluir jsPDF desde un CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js" defer></script>
     <style>
         /* Define el tamaño máximo para todas las imágenes */
         .custom-img {
@@ -33,7 +35,8 @@
     </nav>
 
     <div class="container mt-5">
-        <h2>Citas asignadas del vendedor<a href="reporte_pdf.html" class="btn btn-danger"><i class="fas fa-file-pdf"></i> Generar reporte</a></h2>
+        <h2>Citas asignadas del vendedor        <button class="btn btn-danger" id="generatePDFButton"><i class="fas fa-file-pdf"></i> Generar reporte</button>
+        </h2>
         
         
         <!-- Agregar el filtro de búsqueda por prioridad -->
@@ -100,6 +103,41 @@
                     cita.style.display = 'none';
                 }
             });
+        }
+
+        document.getElementById('generatePDFButton').addEventListener('click', function() {
+            console.log("Botón Generar reporte clickeado");
+            generarReportePDF();
+        });
+
+        function generarReportePDF() {
+            const citas = document.querySelectorAll('.card');
+            const doc = new jsPDF();
+
+            let yPos = 10;
+
+            citas.forEach((cita, index) => {
+                const nombreUsuario = cita.querySelector('.card-title').textContent;
+                const asunto = cita.querySelector('.card-text:nth-child(2)').textContent;
+                const prioridad = cita.querySelector('.card-text:nth-child(3)').textContent;
+                const fechaCita = cita.querySelector('.card-text:nth-child(4)').textContent;
+
+                doc.text(`Cita ${index + 1}`, 10, yPos);
+                doc.text(`Nombre Usuario: ${nombreUsuario}`, 10, yPos + 10);
+                doc.text(`Asunto: ${asunto}`, 10, yPos + 20);
+                doc.text(`Prioridad: ${prioridad}`, 10, yPos + 30);
+                doc.text(`Fecha de Cita: ${fechaCita}`, 10, yPos + 40);
+
+                yPos += 50;
+
+                if (yPos >= 280) {
+                    doc.addPage(); // Agregar nueva página si se llega al final de la página actual
+                    yPos = 10; // Reiniciar posición de Y en la nueva página
+                }
+            });
+
+            // Descargar el PDF automáticamente
+            doc.save('reporte_citas.pdf');
         }
     </script>
 </body>

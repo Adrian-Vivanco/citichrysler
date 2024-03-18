@@ -65,18 +65,44 @@ app.post('/Administrador/procesar_formulario', (req, res) => {
     console.log('ID Rol:', ID_Rol);
     console.log('Imagen:', imagenBase64); // Solo para verificar que la imagen se recibe correctamente
 
-    // Insertar los datos del vendedor en la base de datos junto con la imagen en formato BLOB
-    connection.query('INSERT INTO vendedor (Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, Foto, Fecha_Alta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
-        [Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, imageBuffer],
-        (error, results) => {
+    // Verificar si el correo electrónico ya está registrado
+    connection.query('SELECT * FROM vendedor WHERE Email = ? LIMIT 1', [Email], (error, results) => {
+        if (error) {
+            console.error('Error al verificar correo electrónico en la base de datos:', error);
+            return res.status(500).send('Error interno del servidor');
+        }
+
+        if (results.length > 0) {
+            console.log('El correo electrónico ya está registrado');
+            return res.status(400).send('El correo electrónico ya está registrado');
+        }
+
+        // Verificar si el nombre de usuario ya está registrado
+        connection.query('SELECT * FROM vendedor WHERE Username = ? LIMIT 1', [Username], (error, results) => {
             if (error) {
-                console.error('Error al insertar vendedor en la base de datos:', error);
+                console.error('Error al verificar nombre de usuario en la base de datos:', error);
                 return res.status(500).send('Error interno del servidor');
             }
-            console.log('Vendedor registrado exitosamente en la base de datos');
-            return res.status(200).send('Vendedor registrado exitosamente');
-        }
-    );
+
+            if (results.length > 0) {
+                console.log('El nombre de usuario ya está en uso');
+                return res.status(400).send('El nombre de usuario ya está en uso');
+            }
+
+            // Si el correo electrónico y el nombre de usuario no están registrados, insertar el nuevo vendedor
+            connection.query('INSERT INTO vendedor (Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, Foto, Fecha_Alta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+                [Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, imageBuffer],
+                (error, results) => {
+                    if (error) {
+                        console.error('Error al insertar vendedor en la base de datos:', error);
+                        return res.status(500).send('Error interno del servidor');
+                    }
+                    console.log('Vendedor registrado exitosamente en la base de datos');
+                    return res.status(200).send('Vendedor registrado exitosamente');
+                }
+            );
+        });
+    });
 });
 
 
@@ -520,28 +546,42 @@ app.post('/registro_usuario_nuevo', (req, res) => {
     console.log('Teléfono:', Telefono);
     console.log('Nombre de Usuario:', Username);
 
-    // Verificar si el nombre de usuario ya existe en la base de datos
-    connection.query('SELECT COUNT(*) AS count FROM usuario WHERE Username = ?', [Username], (error, results) => {
+    // Verificar si el correo electrónico ya existe en la base de datos
+    connection.query('SELECT COUNT(*) AS count FROM usuario WHERE Email = ?', [Email], (error, results) => {
         if (error) {
-            console.error('Error al verificar el nombre de usuario:', error);
+            console.error('Error al verificar el correo electrónico:', error);
             return res.status(500).send('Error interno del servidor');
         }
 
         const count = results[0].count;
         if (count > 0) {
-            console.log('El nombre de usuario ya está en uso');
-            return res.status(400).send('El nombre de usuario ya está en uso');
+            console.log('El correo electrónico ya está registrado');
+            return res.status(400).send('El correo electrónico ya está registrado');
         }
 
-        // Si el nombre de usuario no está en uso, insertarlo en la base de datos
-        connection.query('INSERT INTO usuario (Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, Fecha_Alta) VALUES (?, ?, ?, ?, ?, ?, ?, 3, NOW())', [Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, 3], (error, results) => {
+        // Verificar si el nombre de usuario ya está en uso
+        connection.query('SELECT COUNT(*) AS count FROM usuario WHERE Username = ?', [Username], (error, results) => {
             if (error) {
-                console.error('Error al insertar usuario en la base de datos:', error);
+                console.error('Error al verificar el nombre de usuario:', error);
                 return res.status(500).send('Error interno del servidor');
             }
-            console.log('Cuenta creada exitosamente');
-            // Redireccionar al usuario a login.html después de insertar los datos en la base de datos
-            res.redirect('/login.html');
+
+            const count = results[0].count;
+            if (count > 0) {
+                console.log('El nombre de usuario ya está en uso');
+                return res.status(400).send('El nombre de usuario ya está en uso');
+            }
+
+            // Si el correo electrónico y el nombre de usuario no están en uso, insertar la nueva cuenta de usuario en la base de datos
+            connection.query('INSERT INTO usuario (Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, Fecha_Alta) VALUES (?, ?, ?, ?, ?, ?, ?, 3, NOW())', [Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password], (error, results) => {
+                if (error) {
+                    console.error('Error al insertar usuario en la base de datos:', error);
+                    return res.status(500).send('Error interno del servidor');
+                }
+                console.log('Cuenta creada exitosamente');
+                // Redireccionar al usuario a login.html después de insertar los datos en la base de datos
+                res.redirect('/login.html');
+            });
         });
     });
 });
@@ -746,6 +786,13 @@ app.post('/login', (req, res) => {
         });
     });
 });
+
+
+
+
+
+
+
 
 
 app.get('/Administrador', (req, res) => {
