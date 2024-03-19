@@ -764,31 +764,40 @@ app.post('/Usuario/insertar_documentos_cita', (req, res) => {
 app.post('/cancelar_cita', (req, res) => {
     const citaId = req.body.citaId;
 
-    // Verificar si el campo de vendedor está vacío
-    connection.query('SELECT ID_Vendedor FROM citas WHERE ID_Cita = ?', [citaId], (error, results) => {
+    // Obtener el ID_Documentos asociado a la cita
+    connection.query('SELECT ID_Documentos FROM citas WHERE ID_Cita = ?', [citaId], (error, results) => {
         if (error) {
             console.error('Error al verificar la cita:', error);
             return res.status(500).json({ error: 'Error interno del servidor' });
         }
 
-        const idVendedor = results[0].ID_Vendedor;
+        const idDocumentos = results[0].ID_Documentos;
 
-        if (idVendedor) {
-            // Si el campo de vendedor no está vacío, la cita no puede ser cancelada
-            return res.status(400).json({ error: 'No se puede cancelar la cita porque está asignada a un vendedor.' });
-        } else {
-            // Si el campo de vendedor está vacío, la cita puede ser cancelada
-            connection.query('DELETE FROM citas WHERE ID_Cita = ?', [citaId], (error, results) => {
-                if (error) {
-                    console.error('Error al cancelar la cita:', error);
-                    return res.status(500).json({ error: 'Error interno del servidor' });
-                }
+        // Eliminar la cita de la tabla citas
+        connection.query('DELETE FROM citas WHERE ID_Cita = ?', [citaId], (error, results) => {
+            if (error) {
+                console.error('Error al cancelar la cita:', error);
+                return res.status(500).json({ error: 'Error interno del servidor' });
+            }
 
+            // Verificar si la cita tenía documentos asociados
+            if (idDocumentos) {
+                // Eliminar los documentos asociados a la cita
+                connection.query('DELETE FROM documentos WHERE ID_Documentos = ?', [idDocumentos], (error, results) => {
+                    if (error) {
+                        console.error('Error al eliminar los documentos asociados a la cita:', error);
+                        return res.status(500).json({ error: 'Error interno del servidor' });
+                    }
+
+                    res.json({ success: true });
+                });
+            } else {
                 res.json({ success: true });
-            });
-        }
+            }
+        });
     });
 });
+
 
 
 
@@ -817,6 +826,30 @@ app.get('/obtener_datos_usuario_actual', (req, res) => {
 
 // RESTRINGIR ACCESO SI NO INICIARON SESIÓN 
 
+
+
+
+
+
+// CERRAR SESIÓN
+
+app.post('/logout', (req, res) => {
+ 
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Error al destruir la sesión:', err);
+            
+        } else {
+            
+            res.redirect('/');
+        }
+    });
+});
+
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Usuario', 'index.html'));
+});
 
 
 

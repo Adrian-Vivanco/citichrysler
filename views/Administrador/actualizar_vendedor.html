@@ -117,7 +117,26 @@
                 alert('Error al actualizar vendedor. Por favor, inténtalo de nuevo.');
             });
         });
+    
+        // Manejar el clic en el botón "Cerrar sesión"
+        document.getElementById('empleados').addEventListener('click', function(event) {
+            event.preventDefault(); // Evitar el comportamiento predeterminado del enlace
+            // Lógica para cerrar sesión
+            fetch('/logout', {
+                method: 'POST'
+            })
+            .then(response => {
+                if (response.redirected) {
+                    // Si la respuesta redirecciona, redirigir al usuario a la página principal
+                    window.location.href = response.url;
+                } else {
+                    console.error('Error al cerrar sesión:', response.statusText);
+                    // Manejar el error al cerrar sesión
+                }
+            })
+            .catch(error => console.error('Error al cerrar sesión:', error));
+        });
     </script>
-
 </body>
 </html>
+
