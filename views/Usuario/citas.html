@@ -4,10 +4,10 @@
     
 <!-- Bootstrap CSS -->
 <link rel="stylesheet" href="../css/bootstrap.min.css">
-<scripy src="../js/bootstrap.bundle.min.js"></script>
- <link rel="stylesheet" href="../css/bg.css">
- <link rel="stylesheet" href="../css/table.css">
- <style>
+<script src="../js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="../css/bg.css">
+<link rel="stylesheet" href="../css/table.css">
+<style>
     /* Define el tamaño máximo para todas las imágenes */
     .custom-img {
         max-width: 200px; /* Ajusta el valor según el tamaño máximo deseado */
@@ -17,11 +17,11 @@
     }
 </style>
 
- <script src="https://kit.fontawesome.com/e07784388c.js" crossorigin="anonymous"></script>
+<script src="https://kit.fontawesome.com/e07784388c.js" crossorigin="anonymous"></script>
 
 <!-- Favicon - FIS -->
 <link rel="shortcut icon" href="img/logo.png">
-  <title>Citas</title>
+<title>Citas</title>
 </head>
 <body>
     <nav class="navbar navbar-dark bg-dark">
@@ -30,24 +30,50 @@
                 <img src="../img/logo.jpg" alt="" width="70" class="d-inline-block align-text-top">
                 CitiChrysler  
             </a>
-          <a href="citas.html" id="empresa" class="btn text-light text-opacity-50 fs-5 ">Mis Citas<i class="fa-solid fa-briefcase"></i></a>
-          <a href="mis_datos.html" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Mis datos<i class="fa-solid fa-clipboard-list"></i></a>
-          <a href="#" id="empleados" class="btn text-light text-opacity-50 fs-5 ">Cerrar sesión<i class="fa-solid fa-person-walking-luggage"></i></a>
-     
+            <a href="citas.html" id="empresa" class="btn text-light text-opacity-50 fs-5 ">Mis Citas<i class="fa-solid fa-briefcase"></i></a>
+            <a href="mis_datos.html" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Mis datos<i class="fa-solid fa-clipboard-list"></i></a>
+            <a href="#" id="empleados" class="btn text-light text-opacity-50 fs-5 ">Cerrar sesión<i class="fa-solid fa-person-walking-luggage"></i></a>
+        
             <form  style="color: #fff">
-              
                 
-              </form>
-      
+                
+            </form>
+    
         </div>
-      </nav>
-      <div class="container mt-5">
+    </nav>
+    <div class="container mt-5">
         <h2>Mis Citas</h2>
         <div id="CitasContainer" class="row">
             <!-- Aquí se cargarán las citas -->
         </div>
     </div>
 
+    <div class="container mt-3" id="formDocumentos" style="display: none;">
+        <h3>Documentos</h3>
+        <form id="crearDocumentosForm" action="/Usuario/insertar_documentos_cita" method="post">
+            <input type="hidden" id="citaIdInput" name="citaId">
+            <div class="mb-3">
+                <label for="pruebaManejoInput" class="form-label">Prueba de Manejo</label>
+                <input type="file" class="form-control" id="pruebaManejoInput" name="pruebaManejo" accept=".pdf">
+            </div>
+            <div class="mb-3">
+                <label for="comprobanteDomicilioInput" class="form-label">Comprobante de Domicilio</label>
+                <input type="file" class="form-control" id="comprobanteDomicilioInput" name="comprobanteDomicilio" accept=".pdf">
+            </div>
+            <div class="mb-3">
+                <label for="identificacionOficialInput" class="form-label">Identificación Oficial</label>
+                <input type="file" class="form-control" id="identificacionOficialInput" name="identificacionOficial" accept=".pdf">
+            </div>
+            <div class="mb-3">
+                <label for="cotizacionInput" class="form-label">Cotización</label>
+                <input type="file" class="form-control" id="cotizacionInput" name="cotizacion" accept=".pdf">
+            </div>
+            <button type="submit" class="btn btn-primary" onclick="enviarDocumentos()">Guardar</button>
+            <button type="button" class="btn btn-secondary" onclick="ocultarFormDocumentos()">Cancelar</button>
+        </form>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script>
         // Hacer una solicitud al servidor para obtener las citas del vendedor actualmente autenticado
         fetch('/consultar_citas_usuario')
@@ -57,12 +83,22 @@
                 data.forEach(cita => {
                     const citaCard = document.createElement('div');
                     citaCard.classList.add('card', 'col-sm-4', 'm-2', 'p-1');
+                    
+                    // Formatear la fecha y hora en el formato deseado (en este caso, formato completo de México)
+                    const fechaCita = moment(cita.Fecha_Cita).locale('es').format('LLLL');
+
+                    // Verificar si el campo Nombre_Vendedor está vacío y mostrar "Vendedor no asignado" en su lugar
+                    const nombreVendedor = cita.Nombre_Vendedor ? cita.Nombre_Vendedor : 'Vendedor no asignado';
+
                     citaCard.innerHTML = `
                     <div class="card-body">
                             <h5 class="card-title">${cita.Nombre_Usuario}  </h5>
                             <p class="card-text"><b>Asunto:</b> ${cita.Asunto}</p>
                             <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
-                            <p class="card-text"><b>Fecha de Cita:</b> ${cita.Fecha_Cita}</p>
+                            <p class="card-text"><b>Vendedor:</b> ${nombreVendedor}</p>
+                            <p class="card-text"><b>Fecha de Cita:</b> ${fechaCita}</p>
+                            <button class="btn btn-warning" onclick="verDetalles('${cita.ID_Cita}')">Detalles de cita</button>
+                            <button class="btn btn-danger" onclick="cancelarCita('${cita.ID_Cita}', '${nombreVendedor}')">Cancelar Cita</button>
                         </div>
                     `;
 
@@ -72,6 +108,63 @@
             .catch(error => {
                 console.error('Error al obtener datos de citas:', error);
             });
+
+        // Función para ver los detalles de una cita
+        function verDetalles(citaId) {
+            // Mostrar el formulario de inserción de documentos
+            document.getElementById('formDocumentos').style.display = 'block';
+
+            // Asignar el ID de la cita al formulario de inserción de documentos
+            document.getElementById('citaIdInput').value = citaId;
+        }
+
+        // Función para enviar el formulario de documentos
+        function enviarDocumentos() {
+            // Mostrar mensaje de éxito (puedes personalizarlo según tus necesidades)
+            alert('Documentos guardados exitosamente');
+            // O puedes redirigir al usuario a otra página después de enviar los documentos
+            // window.location.href = 'ruta_de_redireccion';
+        }
+
+        // Función para ocultar el formulario de documentos
+        function ocultarFormDocumentos() {
+            // Ocultar el formulario de inserción de documentos
+            document.getElementById('formDocumentos').style.display = 'none';
+        }
+
+        // Función para cancelar una cita
+        function cancelarCita(citaId, nombreVendedor) {
+            // Verificar si el campo de vendedor está vacío
+            if (nombreVendedor === 'Vendedor no asignado') {
+                // Mostrar una alerta para confirmar la cancelación de la cita
+                if (confirm("¿Estás seguro de cancelar la cita?")) {
+                    // Si el usuario confirma la cancelación, procede con la solicitud al servidor
+                    fetch('/cancelar_cita', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ citaId: citaId })
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log('Cita cancelada con éxito.');
+                            // Recargar la página para refrescar las citas después de la cancelación
+                            location.reload();
+                        } else {
+                            return response.json().then(error => Promise.reject(error));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al cancelar la cita:', error);
+                        alert('Error al cancelar la cita: ' + error.error);
+                    });
+                }
+            } else {
+                // Si el campo de vendedor no está vacío, mostrar un mensaje de error
+                alert('No se puede cancelar la cita porque está asignada a un vendedor.');
+            }
+        }
     </script>
 </body>
 </html>

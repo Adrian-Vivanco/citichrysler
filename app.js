@@ -1,6 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
+const argon2 = require('argon2');
 const http = require('http');
 const mysql = require('mysql2');
 const path = require('path');
@@ -47,7 +48,7 @@ app.get('/', (req, res) => {
 
 //MODULO DEL ADMINISTRADOR
 //INSERTAR VENDEDOR 
-app.post('/Administrador/procesar_formulario', (req, res) => {
+app.post('/Administrador/procesar_formulario', async (req, res) => {
     const { Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol } = req.body;
     const imagenBase64 = req.body.Foto; // Capturando la imagen en base64 desde el formulario
 
@@ -65,46 +66,53 @@ app.post('/Administrador/procesar_formulario', (req, res) => {
     console.log('ID Rol:', ID_Rol);
     console.log('Imagen:', imagenBase64); // Solo para verificar que la imagen se recibe correctamente
 
-    // Verificar si el correo electrónico ya está registrado
-    connection.query('SELECT * FROM vendedor WHERE Email = ? LIMIT 1', [Email], (error, results) => {
-        if (error) {
-            console.error('Error al verificar correo electrónico en la base de datos:', error);
-            return res.status(500).send('Error interno del servidor');
-        }
+    try {
+        // Encriptar la contraseña utilizando Argon2
+        const hashedPassword = await argon2.hash(Password);
 
-        if (results.length > 0) {
-            console.log('El correo electrónico ya está registrado');
-            return res.status(400).send('El correo electrónico ya está registrado');
-        }
-
-        // Verificar si el nombre de usuario ya está registrado
-        connection.query('SELECT * FROM vendedor WHERE Username = ? LIMIT 1', [Username], (error, results) => {
+        // Verificar si el correo electrónico ya está registrado
+        connection.query('SELECT * FROM vendedor WHERE Email = ? LIMIT 1', [Email], async (error, results) => {
             if (error) {
-                console.error('Error al verificar nombre de usuario en la base de datos:', error);
+                console.error('Error al verificar correo electrónico en la base de datos:', error);
                 return res.status(500).send('Error interno del servidor');
             }
 
             if (results.length > 0) {
-                console.log('El nombre de usuario ya está en uso');
-                return res.status(400).send('El nombre de usuario ya está en uso');
+                console.log('El correo electrónico ya está registrado');
+                return res.status(400).send('El correo electrónico ya está registrado');
             }
 
-            // Si el correo electrónico y el nombre de usuario no están registrados, insertar el nuevo vendedor
-            connection.query('INSERT INTO vendedor (Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, Foto, Fecha_Alta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
-                [Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, imageBuffer],
-                (error, results) => {
-                    if (error) {
-                        console.error('Error al insertar vendedor en la base de datos:', error);
-                        return res.status(500).send('Error interno del servidor');
-                    }
-                    console.log('Vendedor registrado exitosamente en la base de datos');
-                    return res.status(200).send('Vendedor registrado exitosamente');
+            // Verificar si el nombre de usuario ya está registrado
+            connection.query('SELECT * FROM vendedor WHERE Username = ? LIMIT 1', [Username], async (error, results) => {
+                if (error) {
+                    console.error('Error al verificar nombre de usuario en la base de datos:', error);
+                    return res.status(500).send('Error interno del servidor');
                 }
-            );
-        });
-    });
-});
 
+                if (results.length > 0) {
+                    console.log('El nombre de usuario ya está en uso');
+                    return res.status(400).send('El nombre de usuario ya está en uso');
+                }
+
+                // Si el correo electrónico y el nombre de usuario no están registrados, insertar el nuevo vendedor
+                connection.query('INSERT INTO vendedor (Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, Foto, Fecha_Alta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+                    [Nombre, A_Paterno, A_Materno, Email, Telefono, Username, hashedPassword, ID_Rol, imageBuffer],
+                    (error, results) => {
+                        if (error) {
+                            console.error('Error al insertar vendedor en la base de datos:', error);
+                            return res.status(500).send('Error interno del servidor');
+                        }
+                        console.log('Vendedor registrado exitosamente en la base de datos');
+                        return res.status(200).send('Vendedor registrado exitosamente');
+                    }
+                );
+            });
+        });
+    } catch (error) {
+        console.error('Error al encriptar la contraseña:', error);
+        return res.status(500).send('Error interno del servidor');
+    }
+});
 
 
 
@@ -534,58 +542,56 @@ app.get('/consultar_citas_vendedor_estado/:estado', (req, res) => {
 
 //MÓDULO DEL USUARIO 
 //CREAR CUENTA DE USUARIO
-app.post('/registro_usuario_nuevo', (req, res) => {
-    
+app.post('/registro_usuario_nuevo', async (req, res) => {
     const { Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password } = req.body;
 
-    console.log('Datos recibidos del formulario:');
-    console.log('Nombre:', Nombre);
-    console.log('Apellido Paterno:', A_Paterno);
-    console.log('Apellido Materno:', A_Materno);
-    console.log('Email:', Email);
-    console.log('Teléfono:', Telefono);
-    console.log('Nombre de Usuario:', Username);
+    try {
+        // Encriptar la contraseña con Argon2
+        const hashedPassword = await argon2.hash(Password);
 
-    // Verificar si el correo electrónico ya existe en la base de datos
-    connection.query('SELECT COUNT(*) AS count FROM usuario WHERE Email = ?', [Email], (error, results) => {
-        if (error) {
-            console.error('Error al verificar el correo electrónico:', error);
-            return res.status(500).send('Error interno del servidor');
-        }
-
-        const count = results[0].count;
-        if (count > 0) {
-            console.log('El correo electrónico ya está registrado');
-            return res.status(400).send('El correo electrónico ya está registrado');
-        }
-
-        // Verificar si el nombre de usuario ya está en uso
-        connection.query('SELECT COUNT(*) AS count FROM usuario WHERE Username = ?', [Username], (error, results) => {
+        // Verificar si el correo electrónico ya existe en la base de datos
+        connection.query('SELECT COUNT(*) AS count FROM usuario WHERE Email = ?', [Email], async (error, results) => {
             if (error) {
-                console.error('Error al verificar el nombre de usuario:', error);
+                console.error('Error al verificar el correo electrónico:', error);
                 return res.status(500).send('Error interno del servidor');
             }
 
             const count = results[0].count;
             if (count > 0) {
-                console.log('El nombre de usuario ya está en uso');
-                return res.status(400).send('El nombre de usuario ya está en uso');
+                console.log('El correo electrónico ya está registrado');
+                return res.status(400).send('El correo electrónico ya está registrado');
             }
 
-            // Si el correo electrónico y el nombre de usuario no están en uso, insertar la nueva cuenta de usuario en la base de datos
-            connection.query('INSERT INTO usuario (Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, Fecha_Alta) VALUES (?, ?, ?, ?, ?, ?, ?, 3, NOW())', [Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password], (error, results) => {
+            // Verificar si el nombre de usuario ya está en uso
+            connection.query('SELECT COUNT(*) AS count FROM usuario WHERE Username = ?', [Username], async (error, results) => {
                 if (error) {
-                    console.error('Error al insertar usuario en la base de datos:', error);
+                    console.error('Error al verificar el nombre de usuario:', error);
                     return res.status(500).send('Error interno del servidor');
                 }
-                console.log('Cuenta creada exitosamente');
-                // Redireccionar al usuario a login.html después de insertar los datos en la base de datos
-                res.redirect('/login.html');
+
+                const count = results[0].count;
+                if (count > 0) {
+                    console.log('El nombre de usuario ya está en uso');
+                    return res.status(400).send('El nombre de usuario ya está en uso');
+                }
+
+                // Si el correo electrónico y el nombre de usuario no están en uso, insertar la nueva cuenta de usuario en la base de datos
+                connection.query('INSERT INTO usuario (Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password, ID_Rol, Fecha_Alta) VALUES (?, ?, ?, ?, ?, ?, ?, 3, NOW())', [Nombre, A_Paterno, A_Materno, Email, Telefono, Username, hashedPassword], (error, results) => {
+                    if (error) {
+                        console.error('Error al insertar usuario en la base de datos:', error);
+                        return res.status(500).send('Error interno del servidor');
+                    }
+                    console.log('Cuenta creada exitosamente');
+                    // Redireccionar al usuario a login.html después de insertar los datos en la base de datos
+                    res.redirect('/login.html');
+                });
             });
         });
-    });
+    } catch (error) {
+        console.error('Error al encriptar la contraseña:', error);
+        return res.status(500).send('Error interno del servidor');
+    }
 });
-
 
 
 
@@ -718,6 +724,80 @@ app.post('/Usuario/guardar_documentos', (req, res) => {
 
 
 
+// INSERTAR DOCUMENTOS CON LA CITA
+app.post('/Usuario/insertar_documentos_cita', (req, res) => {
+    const { pruebaManejo, comprobanteDomicilio, identificacionOficial, cotizacion, citaId } = req.body;
+
+    // Primero, insertamos los documentos
+    const documentosQuery = 'INSERT INTO documentos (Prueba_Manejo, Comprobante_Domicilio, Identificacion_Oficial, Cotizacion, Fecha_Alta) VALUES (?, ?, ?, ?, NOW())';
+    connection.query(documentosQuery, [pruebaManejo, comprobanteDomicilio, identificacionOficial, cotizacion], (error, documentosResult) => {
+        if (error) {
+            console.error('Error al guardar los documentos en la base de datos:', error);
+            return res.status(500).send('Error interno del servidor');
+        }
+
+        // Obtener el ID_Documentos generado
+        const ID_Documentos = documentosResult.insertId;
+
+        // Actualizamos la cita en la tabla citas con el ID_Documentos generado y ID_Prioridad = 1
+        const citaUpdateQuery = 'UPDATE citas SET ID_Cita_Pioridad = 1, ID_Documentos = ? WHERE ID_Cita = ?';
+        connection.query(citaUpdateQuery, [ID_Documentos, citaId], (error, updateResult) => {
+            if (error) {
+                console.error('Error al actualizar la cita en la base de datos:', error);
+                return res.status(500).send('Error interno del servidor');
+            }
+
+            console.log('Documentos y cita actualizados exitosamente en la base de datos');
+            return res.status(200).send('Documentos y cita actualizados exitosamente');
+        });
+    });
+});
+
+
+
+
+
+
+
+
+// CANCELAR CITA
+app.post('/cancelar_cita', (req, res) => {
+    const citaId = req.body.citaId;
+
+    // Verificar si el campo de vendedor está vacío
+    connection.query('SELECT ID_Vendedor FROM citas WHERE ID_Cita = ?', [citaId], (error, results) => {
+        if (error) {
+            console.error('Error al verificar la cita:', error);
+            return res.status(500).json({ error: 'Error interno del servidor' });
+        }
+
+        const idVendedor = results[0].ID_Vendedor;
+
+        if (idVendedor) {
+            // Si el campo de vendedor no está vacío, la cita no puede ser cancelada
+            return res.status(400).json({ error: 'No se puede cancelar la cita porque está asignada a un vendedor.' });
+        } else {
+            // Si el campo de vendedor está vacío, la cita puede ser cancelada
+            connection.query('DELETE FROM citas WHERE ID_Cita = ?', [citaId], (error, results) => {
+                if (error) {
+                    console.error('Error al cancelar la cita:', error);
+                    return res.status(500).json({ error: 'Error interno del servidor' });
+                }
+
+                res.json({ success: true });
+            });
+        }
+    });
+});
+
+
+
+
+
+
+
+
+
 
 
 
@@ -747,52 +827,58 @@ app.get('/obtener_datos_usuario_actual', (req, res) => {
 
 
 //LOGIN
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
     const { Username, Password } = req.body;
 
-    connection.query('SELECT * FROM vendedor WHERE Username = ? AND Password = ?', [Username, Password], (error, results) => {
-        if (error) {
-            console.error('Error al verificar el inicio de sesión del vendedor:', error);
-            return res.status(500).send('Error interno del servidor');
-        }
-
-        if (results.length > 0) {
-            req.session.user = results[0]; // Guardar datos del vendedor en la sesión
-            if (results[0].ID_Rol === 2) {
-                return res.redirect('/Vendedor');
-            }
-            if (results[0].ID_Rol === 1) {
-                return res.redirect('/Administrador');
-            }
-        }
-
-        connection.query('SELECT * FROM usuario WHERE Username = ? AND Password = ?', [Username, Password], (error, results) => {
+    try {
+        connection.query('SELECT * FROM vendedor WHERE Username = ?', [Username], async (error, results) => {
             if (error) {
-                console.error('Error al verificar el inicio de sesión del usuario:', error);
+                console.error('Error al verificar el inicio de sesión del vendedor:', error);
                 return res.status(500).send('Error interno del servidor');
             }
 
             if (results.length > 0) {
-                req.session.user = results[0]; // Guardar datos del usuario en la sesión
-                if (results[0].ID_Rol === 3) {
-                    return res.redirect('/Usuario');
-                }
-                if (results[0].ID_Rol === 1) {
-                    return res.redirect('/Administrador');
+                const vendedor = results[0];
+                // Verificar si la contraseña coincidida usando Argon2
+                const passwordMatched = await argon2.verify(vendedor.Password, Password);
+                if (passwordMatched) {
+                    req.session.user = vendedor; // Guardar datos del vendedor en la sesión
+                    if (vendedor.ID_Rol === 2) {
+                        return res.redirect('/Vendedor');
+                    } else if (vendedor.ID_Rol === 1) {
+                        return res.redirect('/Administrador');
+                    }
                 }
             }
 
-            return res.send('Usuario o contraseña incorrectos');
+            connection.query('SELECT * FROM usuario WHERE Username = ?', [Username], async (error, results) => {
+                if (error) {
+                    console.error('Error al verificar el inicio de sesión del usuario:', error);
+                    return res.status(500).send('Error interno del servidor');
+                }
+
+                if (results.length > 0) {
+                    const usuario = results[0];
+                    // Verificar si la contraseña coincidida usando Argon2
+                    const passwordMatched = await argon2.verify(usuario.Password, Password);
+                    if (passwordMatched) {
+                        req.session.user = usuario; // Guardar datos del usuario en la sesión
+                        if (usuario.ID_Rol === 3) {
+                            return res.redirect('/Usuario');
+                        } else if (usuario.ID_Rol === 1) {
+                            return res.redirect('/Administrador');
+                        }
+                    }
+                }
+
+                return res.send('Usuario o contraseña incorrectos');
+            });
         });
-    });
+    } catch (error) {
+        console.error('Error al desencriptar la contraseña:', error);
+        return res.status(500).send('Error interno del servidor');
+    }
 });
-
-
-
-
-
-
-
 
 
 app.get('/Administrador', (req, res) => {
