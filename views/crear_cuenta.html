@@ -146,6 +146,33 @@
             }
         }
 
+        function validarConfirmacionPassword() {
+            var password = document.getElementById("password").value;
+            var confirmPassword = document.getElementById("confirmPassword").value;
+            
+            if (password !== confirmPassword) {
+                document.getElementById("confirmPassword").classList.add("incompleto");
+                document.getElementById("confirmPasswordHelp").innerText = "Las contraseñas no coinciden.";
+                document.getElementById("registrarseBtn").disabled = true;
+            } else {
+                document.getElementById("confirmPassword").classList.remove("incompleto");
+                document.getElementById("confirmPasswordHelp").innerText = "";
+                document.getElementById("registrarseBtn").disabled = false;
+            }
+        }
+
+        function validarTerminosYCondiciones() {
+            var aceptarTerminos = document.getElementById("aceptarTerminos").checked;
+            
+            if (!aceptarTerminos) {
+                document.getElementById("aceptarTerminosHelp").innerText = "Debes aceptar los términos y condiciones para continuar.";
+                document.getElementById("registrarseBtn").disabled = true;
+            } else {
+                document.getElementById("aceptarTerminosHelp").innerText = "";
+                document.getElementById("registrarseBtn").disabled = false;
+            }
+        }
+
         function validarFormulario() {
             var campos = document.querySelectorAll('input[required]');
             var formularioCompleto = true;
@@ -158,6 +185,11 @@
                     campo.classList.remove("incompleto");
                 }
             });
+
+            // Validar coincidencia de contraseñas
+            validarConfirmacionPassword();
+            // Validar aceptación de términos y condiciones
+            validarTerminosYCondiciones();
 
             if (formularioCompleto) {
                 mostrarAlerta(); // Mostrar alerta si el formulario es completo
@@ -234,10 +266,21 @@
                         </div>
                         <div id="passwordHelp" class="form-text text-danger"></div>
                     </div>
+                    <div class="mb-3">
+                        <input type="password" class="form-control same-size" id="confirmPassword" name="ConfirmPassword" placeholder="Confirmar contraseña" required oninput="validarConfirmacionPassword()">
+                        
+                        <div id="confirmPasswordHelp" class="form-text text-danger"></div>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="aceptarTerminos" required onclick="validarTerminosYCondiciones()">
+                        <label class="form-check-label" for="aceptarTerminos">
+                            <a href="politicas.html" class="text-dark fw-bold">Acepto términos y condiciones</a>
+                        </label>                        <div id="aceptarTerminosHelp" class="form-text text-danger"></div>
+                    </div>
                     <div class="text-center">
                         <button type="submit" id="registrarseBtn" class="btn btn-color px-5 mb-5 w-100" disabled>Registrarse</button>
                     </div>
-                    <div class="form-text text-center mb-5 text-dark">Ya tiene una cuenta? <a href="login.html" class="text-dark fw-bold">Inicie sesión con nosotros</a></div>
+                    <div class="form-text text-center mb-5 text-dark">¿Ya tiene una cuenta? <a href="login.html" class="text-dark fw-bold">Inicie sesión con nosotros</a></div>
                   </form>
               </div>
           </div>
