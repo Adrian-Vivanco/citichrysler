@@ -1,24 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="../img/logo.png">
+
     <title>Citas de vendedor</title>
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <script src="../js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="../css/bg.css">
     <script src="https://kit.fontawesome.com/e07784388c.js" crossorigin="anonymous"></script>
-    <!-- Incluir jsPDF desde un CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js" defer></script>
-    <style>
-        /* Define el tamaño máximo para todas las imágenes */
-        .custom-img {
-            max-width: 200px; /* Ajusta el valor según el tamaño máximo deseado */
-            height: auto; /* Mantiene la proporción de aspecto */
-            display: block; /* Permite la alineación vertical */
-            margin: 0 auto; /* Centra horizontalmente */
-        }
-    </style>
+    <script type="text/javascript" src="../js/jspdf.min.js"></script>
 </head>
 <body>
     <nav class="navbar navbar-dark bg-dark">
@@ -35,7 +27,7 @@
     </nav>
 
     <div class="container mt-5">
-        <h2>Citas asignadas del vendedor        <button class="btn btn-danger" id="generatePDFButton"><i class="fas fa-file-pdf"></i> Generar reporte</button>
+        <h2>Citas asignadas del vendedor  <button id="generarReporte" class="btn btn-danger"><i class="fas fa-file-pdf"></i> Generar reporte</button>
         </h2>
         
         
@@ -56,6 +48,13 @@
         </div>
     </div>
     <script>
+ // Función para formatear la fecha en formato legible
+ function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZone: 'America/Mexico_City' };
+            return new Date(dateString).toLocaleString('es-MX', options);
+        }
+
+
         // Obtener el ID del vendedor de la URL
         const urlParams = new URLSearchParams(window.location.search);
         const vendedorId = urlParams.get('id');
@@ -73,9 +72,11 @@
                         citaCard.innerHTML = `
                             <div class="card-body">
                                 <h5 class="card-title">${cita.Nombre_Usuario}</h5>
+                                <p class="card-text"><b>Vendedor asignado:</b> ${cita.Nombre_Vendedor}</p>
                                 <p class="card-text"><b>Asunto:</b> ${cita.Asunto}</p>
+                                <p class="card-text"><b>Estado:</b> ${cita.Estado_Cita}</p>
                                 <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
-                                <p class="card-text"><b>Fecha de Cita:</b> ${cita.Fecha_Cita}</p>
+                                <p class="card-text"><b>Fecha de Cita:</b> ${formatDate(cita.Fecha_Cita)}</p>
                             </div>
                         `;
     
@@ -105,41 +106,6 @@
             });
         }
 
-        document.getElementById('generatePDFButton').addEventListener('click', function() {
-            console.log("Botón Generar reporte clickeado");
-            generarReportePDF();
-        });
-
-        function generarReportePDF() {
-            const citas = document.querySelectorAll('.card');
-            const doc = new jsPDF();
-
-            let yPos = 10;
-
-            citas.forEach((cita, index) => {
-                const nombreUsuario = cita.querySelector('.card-title').textContent;
-                const asunto = cita.querySelector('.card-text:nth-child(2)').textContent;
-                const prioridad = cita.querySelector('.card-text:nth-child(3)').textContent;
-                const fechaCita = cita.querySelector('.card-text:nth-child(4)').textContent;
-
-                doc.text(`Cita ${index + 1}`, 10, yPos);
-                doc.text(`Nombre Usuario: ${nombreUsuario}`, 10, yPos + 10);
-                doc.text(`Asunto: ${asunto}`, 10, yPos + 20);
-                doc.text(`Prioridad: ${prioridad}`, 10, yPos + 30);
-                doc.text(`Fecha de Cita: ${fechaCita}`, 10, yPos + 40);
-
-                yPos += 50;
-
-                if (yPos >= 280) {
-                    doc.addPage(); // Agregar nueva página si se llega al final de la página actual
-                    yPos = 10; // Reiniciar posición de Y en la nueva página
-                }
-            });
-
-            // Descargar el PDF automáticamente
-            doc.save('reporte_citas.pdf');
-        }
-    
         // Manejar el clic en el botón "Cerrar sesión"
         document.getElementById('empleados').addEventListener('click', function(event) {
             event.preventDefault(); // Evitar el comportamiento predeterminado del enlace
@@ -158,7 +124,80 @@
             })
             .catch(error => console.error('Error al cerrar sesión:', error));
         });
-    </script>
+
+
+
+        
+     // Manejar el clic en el botón "Generar reporte"
+document.getElementById('generarReporte').addEventListener('click', function() {
+    // Crear un nuevo documento PDF
+    var doc = new jsPDF();
+    
+    // Función para agregar encabezado y pie de página
+    function addHeaderFooter() {
+        // Agregar encabezado con imagen
+        var img = new Image();
+        img.src = '../img/logo.png'; // Reemplaza '../img/logo.png' con la ruta de tu imagen
+        doc.addImage(img, 'PNG', 10, 5, 15, 15); // Ajusta las coordenadas y el tamaño según tus necesidades
+        
+        // Alinear el texto en el centro del encabezado
+        doc.setFontSize(12);
+        var textoEncabezado = "Reporte General";
+        var textoWidth = doc.getStringUnitWidth(textoEncabezado) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+        var textoX = (doc.internal.pageSize.width - textoWidth) / 2;
+        doc.text(textoEncabezado, textoX, 20);
+        
+        // Agregar línea horizontal debajo del texto del encabezado
+        doc.setLineWidth(0.5);
+        doc.line(10, 22, doc.internal.pageSize.width - 10, 22); // Ajusta las coordenadas según tu diseño
+
+        // Agregar pie de página con número de página
+        var totalPages = doc.internal.getNumberOfPages();
+        for (var i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            doc.text('Página ' + i + ' de ' + totalPages, doc.internal.pageSize.width - 50, doc.internal.pageSize.height - 10);
+        }
+    }
+    
+    // Obtener todas las tarjetas de citas
+    var citas = document.querySelectorAll('.card');
+
+    // Posición inicial para escribir en el PDF
+    var y = 50; // Incremento la posición inicial para que no se solape con el encabezado
+
+    // Título del reporte
+    doc.setFontSize(16);
+    doc.setFontStyle('bold'); // Establecer el estilo de fuente como negrita
+    var textoTitulo = "Reporte de Citas";
+    var tituloWidth = doc.getStringUnitWidth(textoTitulo) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+    var tituloX = (doc.internal.pageSize.width - tituloWidth) / 2;
+    doc.text(textoTitulo, tituloX, 33); // Incremento el valor de y para dejar espacio para el encabezado
+    doc.setFontStyle('normal'); // Restaurar el estilo de fuente a la normalidad
+
+    // Agregar encabezado y pie de página
+    addHeaderFooter();
+
+    // Iterar sobre cada tarjeta de cita
+    citas.forEach(function(cita) {
+        // Obtener el texto de la cita y limpiar espacios en blanco al inicio y al final
+        var textoCita = cita.innerText.trim();
+        // Agregar el texto de la cita al documento PDF
+        doc.setFontSize(12);
+        doc.text(20, y, textoCita); // Aumenta el margen izquierdo del texto
+        // Aumentar la posición Y para la próxima cita
+        y += 65;
+    });
+
+    // Obtener la cadena de datos URI del PDF
+    var pdfDataUri = doc.output('datauristring');
+
+    // Mostrar el PDF en el navegador
+    var iframe = "<iframe width='100%' height='100%' src='" + pdfDataUri + "'></iframe>"
+    var win = window.open();
+    win.document.write(iframe);
+});
+
+
+</script>
 </body>
 </html>
-
