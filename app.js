@@ -228,7 +228,6 @@ app.get('/consultar_citas_por_vendedor', (req, res) => {
 
 
 
-
 //MODULO DEL VENDEDOR
 //CONSULTAR CITAS
 app.get('/consultar_citas', (req, res) => {
@@ -546,10 +545,10 @@ app.post('/registro_usuario_nuevo', async (req, res) => {
     const { Nombre, A_Paterno, A_Materno, Email, Telefono, Username, Password } = req.body;
 
     try {
-        // Encriptar la contraseña con Argon2
+        // Encriptar la contraseña 
         const hashedPassword = await argon2.hash(Password);
 
-        // Verificar si el correo electrónico ya existe en la base de datos
+        // Verificar si el correo ya existe en la base de datos
         connection.query('SELECT COUNT(*) AS count FROM usuario WHERE Email = ?', [Email], async (error, results) => {
             if (error) {
                 console.error('Error al verificar el correo electrónico:', error);
@@ -582,7 +581,7 @@ app.post('/registro_usuario_nuevo', async (req, res) => {
                         return res.status(500).send('Error interno del servidor');
                     }
                     console.log('Cuenta creada exitosamente');
-                    // Redireccionar al usuario a login.html después de insertar los datos en la base de datos
+                    
                     res.redirect('/login.html');
                 });
             });

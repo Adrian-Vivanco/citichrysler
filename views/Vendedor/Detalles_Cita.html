@@ -9,16 +9,6 @@
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <!-- Font Awesome -->
     <script src="https://kit.fontawesome.com/e07784388c.js" crossorigin="anonymous"></script>
-    <!-- Estilos CSS personalizados -->
-    <style>
-        .document-container {
-            margin-bottom: 20px;
-        }
-        .document-container img {
-            max-width: 100%;
-            height: auto;
-        }
-    </style>
 </head>
 <body>
     <nav class="navbar navbar-dark bg-dark">
@@ -45,14 +35,14 @@
                     </tr>
                 </thead>
                 <tbody id="documentosContainer">
-                    <!-- Aquí se mostrarán los documentos -->
+                    <!-- Aquí se mostrarán los documentos o el mensaje -->
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        // Función para cargar y mostrar los documentos en forma de imagen asociados a la cita
+        // Función para cargar y mostrar los documentos en forma de botones asociados a la cita
         function cargarDocumentos(idCita) {
             fetch(`/obtener_documentos_cita/${idCita}`)
             .then(response => response.json())
@@ -60,41 +50,24 @@
                 const documentosContainer = document.getElementById('documentosContainer');
                 documentosContainer.innerHTML = ''; // Limpiar el contenedor de documentos
 
-                if (data.length === 0) {
+                if (Object.keys(data).length === 0) {
                     const noDocumentosRow = document.createElement('tr');
                     noDocumentosRow.innerHTML = '<td colspan="4">No se mandaron documentos a esta cita</td>';
                     documentosContainer.appendChild(noDocumentosRow);
                 } else {
-                    // Crear una fila para cada documento
-                    const documentRow = document.createElement('tr');
-
-                    // Iterar sobre cada documento y crear celdas con las imágenes correspondientes
-                    data.forEach(documento => {
-                        // Para cada tipo de documento, crear una celda
+                    for (const key in data) {
+                        const documentRow = document.createElement('tr');
                         const documentCell = document.createElement('td');
-                        const documentImage = document.createElement('img');
-                        // Asignar la imagen correspondiente al tipo de documento
-                        switch (documento.TipoDocumento) {
-                            case 'Prueba_Manejo':
-                                documentImage.src = `data:image/png;base64,${documento.Prueba_Manejo}`;
-                                break;
-                            case 'Comprobante_Domicilio':
-                                documentImage.src = `data:image/png;base64,${documento.Comprobante_Domicilio}`;
-                                break;
-                            case 'Identificacion_Oficial':
-                                documentImage.src = `data:image/png;base64,${documento.Identificacion_Oficial}`;
-                                break;
-                            case 'Cotizacion':
-                                documentImage.src = `data:image/png;base64,${documento.Cotizacion}`;
-                                break;
-                        }
-                        documentImage.classList.add('document-image');
-                        documentCell.appendChild(documentImage);
+                        const documentButton = document.createElement('button');
+                        documentButton.textContent = key;
+                        documentButton.classList.add('btn', 'btn-primary');
+                        documentButton.onclick = function() {
+                            mostrarDocumento(data[key]);
+                        };
+                        documentCell.appendChild(documentButton);
                         documentRow.appendChild(documentCell);
-                    });
-
-                    // Agregar la fila al contenedor de documentos
-                    documentosContainer.appendChild(documentRow);
+                        documentosContainer.appendChild(documentRow);
+                    }
                 }
             })
             .catch(error => {
@@ -104,7 +77,35 @@
             });
         }
 
-        // Obtener el ID de la cita de la URL (suponiendo que esté en el formato /Detalles_Cita.html?idCita=123)
+        // Función para mostrar el documento PDF
+        function mostrarDocumento(base64PDF) {
+            const blob = b64toBlob(base64PDF, 'application/pdf');
+            const url = URL.createObjectURL(blob);
+            window.open(url);
+        }
+
+        // Función para convertir base64 a blob
+        function b64toBlob(b64Data, contentType='', sliceSize=512) {
+            const byteCharacters = atob(b64Data);
+            const byteArrays = [];
+
+            for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+                const slice = byteCharacters.slice(offset, offset + sliceSize);
+
+                const byteNumbers = new Array(slice.length);
+                for (let i = 0; i < slice.length; i++) {
+                    byteNumbers[i] = slice.charCodeAt(i);
+                }
+
+                const byteArray = new Uint8Array(byteNumbers);
+                byteArrays.push(byteArray);
+            }
+
+            const blob = new Blob(byteArrays, {type: contentType});
+            return blob;
+        }
+
+        // Obtener el ID de la cita de la URL 
         const urlParams = new URLSearchParams(window.location.search);
         const idCita = urlParams.get('idCita');
         if (idCita) {
@@ -112,7 +113,7 @@
         } else {
             console.error('ID de cita no encontrado en la URL');
         };
-        
+
         // Manejar el clic en el botón "Cerrar sesión"
         document.getElementById('empleados').addEventListener('click', function(event) {
             event.preventDefault(); // Evitar el comportamiento predeterminado del enlace
@@ -134,4 +135,3 @@
     </script>
 </body>
 </html>
-

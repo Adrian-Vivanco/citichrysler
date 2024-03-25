@@ -374,6 +374,15 @@
             })
             .catch(error => console.error('Error al cerrar sesión:', error));
         });
+
+
+
+        // Función para mostrar detalles de la cita
+function mostrarDetallesCita(idCita) {
+    // Redirigir al usuario a la página de detalles de cita con el ID de la cita como parámetro
+    window.location.href = `Detalles_Cita.html?id=${idCita}`;
+}
+
     </script>
 </body>
 </html>

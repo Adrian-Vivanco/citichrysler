@@ -74,8 +74,8 @@
                                 <h5 class="card-title">${cita.Nombre_Usuario}</h5>
                                 <p class="card-text"><b>Vendedor asignado:</b> ${cita.Nombre_Vendedor}</p>
                                 <p class="card-text"><b>Asunto:</b> ${cita.Asunto}</p>
-                                <p class="card-text"><b>Estado:</b> ${cita.Estado_Cita}</p>
-                                <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
+                                <p class="card-text prioridad-cita"><b>Estado:</b> ${cita.Estado_Cita}</p>
+                                <p class="card-text prioridad-cita"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
                                 <p class="card-text"><b>Fecha de Cita:</b> ${formatDate(cita.Fecha_Cita)}</p>
                             </div>
                         `;
@@ -91,20 +91,22 @@
         }
 
         // Función para filtrar citas por prioridad
-        function filtrarCitas() {
-            const filtroPrioridad = document.getElementById('filtroPrioridad').value;
-            const citas = document.getElementById('citasContainer').querySelectorAll('.card');
-            
-            citas.forEach(cita => {
-                const prioridadCita = cita.querySelector('.card-text:nth-child(3)').innerText.split(':')[1].trim();
-                
-                if (filtroPrioridad === '' || prioridadCita === filtroPrioridad) {
-                    cita.style.display = 'block';
-                } else {
-                    cita.style.display = 'none';
-                }
-            });
+function filtrarCitas() {
+    const filtroPrioridad = document.getElementById('filtroPrioridad').value;
+    const citas = document.getElementById('citasContainer').querySelectorAll('.card');
+
+    citas.forEach(cita => {
+        const prioridadCitaElements = cita.querySelectorAll('.prioridad-cita'); // Buscar todos los elementos con la clase .prioridad-cita
+        const prioridadCita = prioridadCitaElements[prioridadCitaElements.length - 1].innerText.split(':')[1].trim(); // Obtener la última prioridad de cita encontrada
+
+        if (filtroPrioridad === '' || prioridadCita === filtroPrioridad) {
+            cita.style.display = 'block';
+        } else {
+            cita.style.display = 'none';
         }
+    });
+}
+
 
         // Manejar el clic en el botón "Cerrar sesión"
         document.getElementById('empleados').addEventListener('click', function(event) {
@@ -125,9 +127,6 @@
             .catch(error => console.error('Error al cerrar sesión:', error));
         });
 
-
-
-        
      // Manejar el clic en el botón "Generar reporte"
 document.getElementById('generarReporte').addEventListener('click', function() {
     // Crear un nuevo documento PDF
@@ -137,8 +136,8 @@ document.getElementById('generarReporte').addEventListener('click', function() {
     function addHeaderFooter() {
         // Agregar encabezado con imagen
         var img = new Image();
-        img.src = '../img/logo.png'; // Reemplaza '../img/logo.png' con la ruta de tu imagen
-        doc.addImage(img, 'PNG', 10, 5, 15, 15); // Ajusta las coordenadas y el tamaño según tus necesidades
+        img.src = '../img/logo.png'; 
+        doc.addImage(img, 'PNG', 10, 5, 15, 15); 
         
         // Alinear el texto en el centro del encabezado
         doc.setFontSize(12);
@@ -167,7 +166,7 @@ document.getElementById('generarReporte').addEventListener('click', function() {
 
     // Título del reporte
     doc.setFontSize(16);
-    doc.setFontStyle('bold'); // Establecer el estilo de fuente como negrita
+    doc.setFontStyle('bold'); 
     var textoTitulo = "Reporte de Citas";
     var tituloWidth = doc.getStringUnitWidth(textoTitulo) * doc.internal.getFontSize() / doc.internal.scaleFactor;
     var tituloX = (doc.internal.pageSize.width - tituloWidth) / 2;
@@ -201,3 +200,4 @@ document.getElementById('generarReporte').addEventListener('click', function() {
 </script>
 </body>
 </html>
+

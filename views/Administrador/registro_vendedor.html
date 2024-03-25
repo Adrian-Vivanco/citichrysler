@@ -8,8 +8,82 @@
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <script src="../js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="../css/bg.css">
+    <link href="../css/login.css" rel="stylesheet" />
     <script src="https://kit.fontawesome.com/e07784388c.js" crossorigin="anonymous"></script>
+    <style>
+        /* Estilos similares al formulario de inicio de sesión */
+        body {
+            background-color: #f8f9fa;
+        }
 
+        .container {
+            margin-top: 50px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background-color: #343a40;
+            color: #fff;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .card-body {
+            padding: 40px;
+        }
+
+        .form-control {
+            border-radius: 20px;
+            width: 100%; /* Establecer el ancho al 100% */
+        }
+
+        .btn {
+            border-radius: 20px;
+            padding: 12px 20px;
+            font-size: 16px;
+        }
+
+        .btn-color {
+            background-color: #343a40;
+            color: #fff;
+            transition: background-color 0.3s;
+        }
+
+        .btn-color:hover {
+            background-color: #212529;
+        }
+
+        .text-center {
+            margin-bottom: 20px;
+        }
+
+        .text-dark {
+            color: #000 !important;
+        }
+
+        .text-danger {
+            color: red !important;
+        }
+
+        .text-bold {
+            font-weight: bold;
+        }
+
+        .text-link {
+            text-decoration: none;
+            color: #343a40;
+            font-weight: bold;
+        }
+
+        .text-link:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-dark bg-dark">
@@ -24,45 +98,42 @@
             <a href="#" id="empleados" class="btn text-light text-opacity-50 fs-5 ">Cerrar sesión<i class="fa-solid fa-person-walking-luggage"></i></a>
         </div>
     </nav>
-
-    <div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card mt-5">
+                <div class="card-header">
         <h2>Registro de Nuevo Vendedor</h2>
+    </div>
+    <div class="text-center mb-5 text-dark"></div>
+    <div class="card my-5">
         <form id="registroForm" action="/Administrador/procesar_formulario" enctype="application/x-www-form-urlencoded" method="POST">
             <div class="mb-3">
-                <label for="Nombre" class="form-label">Nombre</label>
-                <input type="text" class="form-control" id="Nombre" name="Nombre" required>
+                
+                <input type="text" class="form-control" id="Nombre" name="Nombre" placeholder="Nombre"  required>
             </div>
             <div class="mb-3">
-                <label for="A_Paterno" class="form-label">Apellido Paterno</label>
-                <input type="text" class="form-control" id="A_Paterno" name="A_Paterno" required>
+                <input type="text" class="form-control" id="A_Paterno" name="A_Paterno" placeholder="Apellido Paterno"  required>
             </div>
             <div class="mb-3">
-                <label for="A_Materno" class="form-label">Apellido Materno</label>
-                <input type="text" class="form-control" id="A_Materno" name="A_Materno" required>
+                <input type="text" class="form-control" id="A_Materno" name="A_Materno" placeholder="Apellido Materno"  required>
             </div>
             <div class="mb-3">
-                <label for="Email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="Email" name="Email" required>
+                <input type="email" class="form-control" id="Email" name="Email" placeholder="Correo"  required>
             </div>
             <div class="mb-3">
-                <label for="Telefono" class="form-label">Teléfono</label>
-                <input type="text" class="form-control" id="Telefono" name="Telefono" required>
+                <input type="text" class="form-control" id="Telefono" name="Telefono" placeholder="Número de Teléfono"  required>
             </div>
             <div class="mb-3">
-                <label for="Foto" class="form-label">Foto</label>
-                <input type="file" class="form-control" id="Foto" name="Foto" required accept="image/*">
+                <input type="file" class="form-control" id="Foto" name="Foto" placeholder="Foto de perfil"  required accept="image/*">
                 <img id="imagenPrevista" src="#" alt="Vista previa de la imagen" style="max-width: 200px; max-height: 200px;">
             </div>
             <div class="mb-3">
-                <label for="Username" class="form-label">Nombre de Usuario</label>
-                <input type="text" class="form-control" id="Username" name="Username" required>
+                <input type="text" class="form-control" id="Username" name="Username" placeholder="Nombre de usuario"  required>
             </div>
             <div class="mb-3">
-                <label for="Password" class="form-label">Contraseña</label>
-                <input type="password" class="form-control" id="Password" name="Password" required>
+                <input type="password" class="form-control" id="Password" name="Password" placeholder="Contraseña"  required>
             </div>
             <div class="mb-3">
-                <label for="ID_Rol" class="form-label">Rol</label>
                 <select class="form-select" id="ID_Rol" name="ID_Rol" required>
                     <option value="">Seleccionar Rol</option>
                     <option value="1">Administrador</option>
@@ -70,10 +141,10 @@
                     <option value="3">Usuario</option>
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary" id="btnRegistrar">Registrar Vendedor</button>
+            <button type="submit" class="btn btn-color px-5 mb-5 w-100" id="btnRegistrar">Registrar Vendedor</button>
         </form>
     </div>
-
+            </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         function convertirImagenABase64(input) {

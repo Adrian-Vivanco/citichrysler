@@ -42,6 +42,13 @@
     </div>
 
     <script>
+// Función para formatear la fecha en formato legible
+function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZone: 'America/Mexico_City' };
+            return new Date(dateString).toLocaleString('es-MX', options);
+        }
+
+
         // Hacer una solicitud al servidor para obtener los datos de los vendedores
         fetch('/consultar_vendedores')
             .then(response => response.json())
@@ -58,7 +65,7 @@
                             <p class="card-text"><b>Email:</b> ${vendedor.Email}</p>
                             <p class="card-text"><b>Teléfono:</b> ${vendedor.Telefono}</p>
                             <p class="card-text"><b>Nombre de Usuario:</b> ${vendedor.Username}</p>
-                            <p class="card-text"><b>Fecha_Alta:</b> ${vendedor.Fecha_Alta}</p>
+                            <p class="card-text"><b>Fecha_Alta:</b> ${formatDate(vendedor.Fecha_Alta)}</p>
                             <hr>
                             <button type="button" class="btn btn-success citi-vendedor" data-vendedor-id="${vendedor.ID_Vendedor}">Ver citas</button>
                             <button type="button" class="btn btn-warning edit-vendedor" data-vendedor-id="${vendedor.ID_Vendedor}">Editar Vendedor</button>
