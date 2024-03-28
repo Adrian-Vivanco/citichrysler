@@ -6,6 +6,81 @@
 <link rel="stylesheet" href="../css/bootstrap.min.css">
 <script src="../js/bootstrap.bundle.min.js"></script>
 <link rel="stylesheet" href="../css/bg.css">
+<link href="../css/login.css" rel="stylesheet" />
+<style>
+    /* Estilos similares al formulario de inicio de sesión */
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .container {
+        margin-top: 50px;
+    }
+
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background-color: #343a40;
+        color: #fff;
+        text-align: center;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .card-body {
+        padding: 40px;
+    }
+
+    .form-control {
+        border-radius: 20px;
+        width: 100%; /* Establecer el ancho al 100% */
+    }
+
+    .btn {
+        border-radius: 20px;
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+
+    .btn-color {
+        background-color: #343a40;
+        color: #fff;
+        transition: background-color 0.3s;
+    }
+
+    .btn-color:hover {
+        background-color: #212529;
+    }
+
+    .text-center {
+        margin-bottom: 20px;
+    }
+
+    .text-dark {
+        color: #000 !important;
+    }
+
+    .text-danger {
+        color: red !important;
+    }
+
+    .text-bold {
+        font-weight: bold;
+    }
+
+    .text-link {
+        text-decoration: none;
+        color: #343a40;
+        font-weight: bold;
+    }
+
+    .text-link:hover {
+        text-decoration: underline;
+    }
+</style>
 
 
 <script src="https://kit.fontawesome.com/e07784388c.js" crossorigin="anonymous"></script>
@@ -39,47 +114,39 @@
     </div>
 </nav>
 
+<center>
 <!-- Formulario para crear cita -->
-<div class="container mt-3" id="formCita">
-    <h3>Crear Cita</h3>
+<div class="row justify-content-center" id="formCita">
+    <div class="col-md-6">
+        <div class="card mt-5">
+            <div class="card-header">
+    <h2>Crear Cita</h2>
+</div>
     <form id="crearCitaForm" enctype="application/x-www-form-urlencoded" action="/Usuario/procesar_formulario_cita" method="post">
         <div class="mb-3">
-            <label for="asuntoInput" class="form-label">Asunto *</label>
-            <input type="text" class="form-control" id="asuntoInput" name="Asunto" required>
-        </div>
-        <div class="mb-3">
-            <label for="fechaCitaInput" class="form-label">Fecha de Cita *</label>
-            <input type="datetime-local" class="form-control" id="fechaCitaInput" name="Fecha_Cita" required min="<?php echo date('Y-m-d\TH:i', strtotime('+1 day')); ?>T10:00" max="<?php echo date('Y-m-d\TH:i', strtotime('+1 day')); ?>T18:00">
-        </div>
-       
-       
-        <button type="submit" class="btn btn-primary">Crear</button>
-    </form>
-</div>
+            <br>
+            <select type="text" class="form-control" id="asuntoInput" name="Asunto" required>
+            <option value="">Seleccione un asunto</option>
+                    <option value="Presentación de nuevos modelos">Presentación de nuevos modelos</option>
+                    <option value="Evaluación de ofertas especiales">Evaluación de ofertas especiales</option>
+                    <option value="Opciones de personalización de vehículos">Opciones de personalización de vehículos</option>
+                    <option value="Planes de financiamiento y leasing">Planes de financiamiento y leasing</option>
+                    <option value="Valoración de vehículos para trade-in">Valoración de vehículos para trade-in</option>
 
-<!-- Formulario para documentos -->
-<div class="container mt-3" id="formDocumentos" style="display: none;">
-    <h3>Documentos</h3>
-    <form id="crearDocumentosForm" action="/Usuario/guardar_documentos" method="post">
-        <div class="mb-3">
-            <label for="pruebaManejoInput" class="form-label">Prueba de Manejo</label>
-            <input type="file" class="form-control" id="pruebaManejoInput" name="pruebaManejo" accept=".pdf">
+                </select>
         </div>
         <div class="mb-3">
-            <label for="comprobanteDomicilioInput" class="form-label">Comprobante de Domicilio</label>
-            <input type="file" class="form-control" id="comprobanteDomicilioInput" name="comprobanteDomicilio" accept=".pdf">
+            <label for="fechaCitaInput" class="form-label">Fecha de Cita </label>
+            <input type="datetime-local" class="form-control" id="fechaCitaInput" name="Fecha_Cita" required>
         </div>
-        <div class="mb-3">
-            <label for="identificacionOficialInput" class="form-label">Identificación Oficial</label>
-            <input type="file" class="form-control" id="identificacionOficialInput" name="identificacionOficial" accept=".pdf">
-        </div>
-        <div class="mb-3">
-            <label for="cotizacionInput" class="form-label">Cotización</label>
-            <input type="file" class="form-control" id="cotizacionInput" name="cotizacion" accept=".pdf">
-        </div>
-        <button type="submit" class="btn btn-primary">Guardar</button>
+       
+       
+        <button type="submit" class="btn btn-color px-5 mb-5 w-100">Solicitar cita</button>
     </form>
 </div>
+    </div>
+</div>
+<center>
 
 <script>
     document.getElementById('crearCitaBtn').addEventListener('click', function() {
@@ -156,6 +223,16 @@ document.getElementById('crearDocumentosForm').addEventListener('submit', functi
         .catch(error => console.error('Error:', error));
     });
 });
+
+// Función para obtener la fecha mínima permitida para la cita (un día después de hoy)
+function getMinDate() {
+            const fecha = new Date();
+            fecha.setDate(fecha.getDate() + 1); // Suma un día
+            return fecha.toISOString().slice(0,16);
+        }
+
+
+
 
 
 // Manejar el clic en el botón "Cerrar sesión"

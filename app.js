@@ -27,6 +27,10 @@ app.use(session({
 
 
 
+
+
+
+
 // Configurar body-parser
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -150,6 +154,27 @@ app.delete('/eliminar_vendedor/:id', (req, res) => {
     });
 });
 
+
+// CONSULTAR UN VENDEDOR POR SU ID
+app.get('/consultar_vendedor_id', (req, res) => {
+    const vendedorId = req.query.id; // Obtener el ID del vendedor de la consulta
+    connection.query('SELECT * FROM vendedor WHERE ID_Vendedor = ?', [vendedorId], (error, results) => {
+        if (error) {
+            console.error('Error al consultar el vendedor por ID:', error);
+            return res.status(500).json({ error: 'Error interno del servidor' });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Vendedor no encontrado' });
+        }
+        // CONVERTIR IMAGEN A BASE64 si es necesario
+        if (results[0].Foto !== null) {
+            results[0].Foto = Buffer.from(results[0].Foto, 'binary').toString('base64');
+        }
+        res.json(results);
+    });
+});
+
+
 // ACTUALIZAR DATOS DEL VENDEDOR
 app.put('/actualizar_vendedor/:id', (req, res) => {
     const vendedorId = req.params.id;
@@ -163,11 +188,23 @@ app.put('/actualizar_vendedor/:id', (req, res) => {
                 return res.status(500).json({ error: 'Error interno del servidor' });
             }
 
-            console.log(`Vendedor con ID ${vendedorId} actualizado exitosamente`);
+            // Comprobar qué campos se han modificado
+            const modifiedFields = [];
+            if (results.changedRows > 0) {
+                if (results.changedRows === 1) {
+                    modifiedFields.push('1 campo');
+                } else {
+                    modifiedFields.push(`${results.changedRows} campos`);
+                }
+                console.log(`Vendedor con ID ${vendedorId} actualizado exitosamente. Se modificaron: ${modifiedFields.join(', ')}`);
+            } else {
+                console.log(`Vendedor con ID ${vendedorId} actualizado, pero no se realizaron cambios`);
+            }
 
             return res.status(200).json({ message: `Vendedor con ID ${vendedorId} actualizado exitosamente` });
         });
 });
+
 
 //CONSULTAR CITAS ASIGNADAS DEL VENDEDOR
 app.get('/consultar_citas_por_vendedor', (req, res) => {
@@ -428,48 +465,49 @@ app.put('/modificar_fecha_cita/:idCita', (req, res) => {
 
 
 
+const fs = require('fs');
+
 // VENDEDOR VISUALIZA DOCUMENTOS DE CITA
 app.get('/obtener_documentos_cita/:idCita', (req, res) => {
     const idCita = req.params.idCita;
 
-    connection.query(`
-    SELECT 
-        CONVERT(d.Prueba_Manejo USING utf8) AS Prueba_Manejo,
-        CONVERT(d.Comprobante_Domicilio USING utf8) AS Comprobante_Domicilio,
-        CONVERT(d.Identificacion_Oficial USING utf8) AS Identificacion_Oficial,
-        CONVERT(d.Cotizacion USING utf8) AS Cotizacion
-    FROM 
-        citas c
-    LEFT JOIN 
-        documentos d ON c.ID_Documentos = d.ID_Documentos
-    WHERE
-        c.ID_Cita = ?
-    `, [idCita], (error, results) => {
+    connection.query(`SELECT Prueba_Manejo, Comprobante_Domicilio, Identificacion_Oficial, Cotizacion
+                      FROM Citas
+                      LEFT JOIN Documentos ON Citas.ID_Documentos = Documentos.ID_Documentos
+                      WHERE Citas.ID_Cita = ?`, [idCita], (error, results) => {
         if (error) {
-            console.error('Error al obtener documentos de la cita:', error);
-            return res.status(500).json({ error: 'Error interno del servidor' });
+            console.error("Error al obtener los documentos de la cita:", error);
+            res.status(500).send("Error interno al obtener los documentos de la cita");
+        } else {
+            if (results.length > 0) {
+                // Si se encontraron resultados
+                const documentosCita = results[0];
+                
+                // Convertir los documentos binarios a base64
+                const base64Documentos = {};
+                for (const key in documentosCita) {
+                    if (documentosCita.hasOwnProperty(key)) {
+                        const documentoBinario = documentosCita[key];
+                        const base64Documento = Buffer.from(documentoBinario).toString('base64');
+                        base64Documentos[key] = base64Documento;
+                    }
+                }
+                
+                res.status(200).json(base64Documentos);
+            } else {
+                // Si no se encontraron resultados, enviar un mensaje indicando que la cita no existe
+                res.status(404).send("La cita no existe o no tiene documentos asociados");
+            }
         }
-
-        // Convertir los resultados a base64
-        const documentosBase64 = {};
-
-        // Verificar si los valores no son null antes de convertirlos a base64
-        if (results[0].Prueba_Manejo !== null) {
-            documentosBase64.Prueba_Manejo = Buffer.from(results[0].Prueba_Manejo).toString('base64');
-        }
-        if (results[0].Comprobante_Domicilio !== null) {
-            documentosBase64.Comprobante_Domicilio = Buffer.from(results[0].Comprobante_Domicilio).toString('base64');
-        }
-        if (results[0].Identificacion_Oficial !== null) {
-            documentosBase64.Identificacion_Oficial = Buffer.from(results[0].Identificacion_Oficial).toString('base64');
-        }
-        if (results[0].Cotizacion !== null) {
-            documentosBase64.Cotizacion = Buffer.from(results[0].Cotizacion).toString('base64');
-        }
-
-        res.json(documentosBase64);
     });
 });
+
+
+
+
+
+
+
 
 // VENDEDOR CONSULTA POR FILTRO ESTADO
 app.get('/consultar_citas_vendedor_estado/:estado', (req, res) => {
@@ -676,7 +714,7 @@ app.post('/Usuario/procesar_formulario_cita', (req, res) => {
     console.log('ID_Usuario:', ID_Usuario);
     console.log('ID_Cita_Prioridad:', ID_Cita_Prioridad);
 
-    const query = 'INSERT INTO citas (Asunto, ID_Usuario, ID_Cita_Pioridad, ID_Cita_Estado, Fecha_Cita, Fecha_Alta) VALUES (?, ?, ?, 1, ?, NOW())';
+    const query = 'INSERT INTO citas (Asunto, ID_Usuario, ID_Cita_Pioridad, ID_Cita_Estado, Fecha_Cita, ID_Cita_Asistencia, Fecha_Alta) VALUES (?, ?, ?, 1, ?, 4, NOW())';
     connection.query(query, [Asunto, ID_Usuario, ID_Cita_Prioridad, Fecha_Cita], (error, results) => {
         if (error) {
             console.error('Error al insertar cita en la base de datos:', error);

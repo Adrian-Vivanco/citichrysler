@@ -121,24 +121,23 @@
                 <input type="email" class="form-control" id="Email" name="Email" placeholder="Correo"  required>
             </div>
             <div class="mb-3">
-                <input type="text" class="form-control" id="Telefono" name="Telefono" placeholder="Número de Teléfono"  required>
+                <input type="text" class="form-control" id="Telefono" name="Telefono" placeholder="Número de Teléfono"  maxlength="10"  required>
             </div>
             <div class="mb-3">
                 <input type="file" class="form-control" id="Foto" name="Foto" placeholder="Foto de perfil"  required accept="image/*">
-                <img id="imagenPrevista" src="#" alt="Vista previa de la imagen" style="max-width: 200px; max-height: 200px;">
+                <img id="imagenPrevista" src="#" alt="" style="max-width: 200px; max-height: 200px;">
             </div>
             <div class="mb-3">
                 <input type="text" class="form-control" id="Username" name="Username" placeholder="Nombre de usuario"  required>
             </div>
             <div class="mb-3">
-                <input type="password" class="form-control" id="Password" name="Password" placeholder="Contraseña"  required>
+                <input type="password" class="form-control same-size" id="password" name="Password" placeholder="Contraseña" required>
             </div>
             <div class="mb-3">
                 <select class="form-select" id="ID_Rol" name="ID_Rol" required>
                     <option value="">Seleccionar Rol</option>
                     <option value="1">Administrador</option>
                     <option value="2">Vendedor</option>
-                    <option value="3">Usuario</option>
                 </select>
             </div>
             <button type="submit" class="btn btn-color px-5 mb-5 w-100" id="btnRegistrar">Registrar Vendedor</button>
@@ -181,6 +180,14 @@
             })
             .catch(error => console.error('Error al cerrar sesión:', error));
         });
+
+
+
+
+        
+
+
+        
     </script>
 </body>
 </html>

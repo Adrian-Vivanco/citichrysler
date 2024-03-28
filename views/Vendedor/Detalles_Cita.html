@@ -41,78 +41,55 @@
         </div>
     </div>
 
+    <!-- JavaScript para cargar los documentos de la cita -->
     <script>
-        // Función para cargar y mostrar los documentos en forma de botones asociados a la cita
-        function cargarDocumentos(idCita) {
+        // Función para cargar los documentos de la cita utilizando AJAX
+        function cargarDocumentosCita(idCita) {
             fetch(`/obtener_documentos_cita/${idCita}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('No se pudo obtener los documentos de la cita');
+                }
+                return response.json();
+            })
             .then(data => {
+                // Mostrar los documentos en la tabla
                 const documentosContainer = document.getElementById('documentosContainer');
-                documentosContainer.innerHTML = ''; // Limpiar el contenedor de documentos
 
-                if (Object.keys(data).length === 0) {
-                    const noDocumentosRow = document.createElement('tr');
-                    noDocumentosRow.innerHTML = '<td colspan="4">No se mandaron documentos a esta cita</td>';
-                    documentosContainer.appendChild(noDocumentosRow);
+                if (data.Prueba_Manejo || data.Comprobante_Domicilio || data.Identificacion_Oficial || data.Cotizacion) {
+                    documentosContainer.innerHTML = `
+                        <tr>
+                            <td><embed src="data:application/pdf;base64,${data.Prueba_Manejo}" type="application/pdf" width="300" height="200"></td>
+                            <td><embed src="data:application/pdf;base64,${data.Comprobante_Domicilio}" type="application/pdf" width="300" height="200"></td>
+                            <td><embed src="data:application/pdf;base64,${data.Identificacion_Oficial}" type="application/pdf" width="300" height="200"></td>
+                            <td><embed src="data:application/pdf;base64,${data.Cotizacion}" type="application/pdf" width="300" height="200"></td>
+                        </tr>
+                    `;
                 } else {
-                    for (const key in data) {
-                        const documentRow = document.createElement('tr');
-                        const documentCell = document.createElement('td');
-                        const documentButton = document.createElement('button');
-                        documentButton.textContent = key;
-                        documentButton.classList.add('btn', 'btn-primary');
-                        documentButton.onclick = function() {
-                            mostrarDocumento(data[key]);
-                        };
-                        documentCell.appendChild(documentButton);
-                        documentRow.appendChild(documentCell);
-                        documentosContainer.appendChild(documentRow);
-                    }
+                    documentosContainer.innerHTML = `<tr><td colspan="4">No se ha mandado documentación con la cita</td></tr>`;
                 }
             })
             .catch(error => {
-                console.error('Error al cargar los documentos:', error);
+                console.error('Error:', error);
+                // Mostrar un mensaje de error en lugar de los documentos
                 const documentosContainer = document.getElementById('documentosContainer');
-                documentosContainer.innerHTML = '<tr><td colspan="4">Error al cargar los documentos</td></tr>';
+                documentosContainer.innerHTML = `<tr><td colspan="4">Error al cargar los documentos de la cita</td></tr>`;
             });
         }
 
-        // Función para mostrar el documento PDF
-        function mostrarDocumento(base64PDF) {
-            const blob = b64toBlob(base64PDF, 'application/pdf');
-            const url = URL.createObjectURL(blob);
-            window.open(url);
-        }
-
-        // Función para convertir base64 a blob
-        function b64toBlob(b64Data, contentType='', sliceSize=512) {
-            const byteCharacters = atob(b64Data);
-            const byteArrays = [];
-
-            for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-                const slice = byteCharacters.slice(offset, offset + sliceSize);
-
-                const byteNumbers = new Array(slice.length);
-                for (let i = 0; i < slice.length; i++) {
-                    byteNumbers[i] = slice.charCodeAt(i);
-                }
-
-                const byteArray = new Uint8Array(byteNumbers);
-                byteArrays.push(byteArray);
-            }
-
-            const blob = new Blob(byteArrays, {type: contentType});
-            return blob;
-        }
-
-        // Obtener el ID de la cita de la URL 
+        // Obtener el ID de la cita de la URL
         const urlParams = new URLSearchParams(window.location.search);
-        const idCita = urlParams.get('idCita');
+        const idCita = urlParams.get('id');
+
+        // Cargar los documentos de la cita al cargar la página
         if (idCita) {
-            cargarDocumentos(idCita);
+            cargarDocumentosCita(idCita);
         } else {
-            console.error('ID de cita no encontrado en la URL');
-        };
+            console.error('ID de cita no especificado en la URL');
+            // Mostrar un mensaje de error en lugar de los documentos si no se proporciona el ID de la cita
+            const documentosContainer = document.getElementById('documentosContainer');
+            documentosContainer.innerHTML = `<tr><td colspan="4">ID de cita no especificado</td></tr>`;
+        }
 
         // Manejar el clic en el botón "Cerrar sesión"
         document.getElementById('empleados').addEventListener('click', function(event) {
@@ -133,5 +110,6 @@
             .catch(error => console.error('Error al cerrar sesión:', error));
         });
     </script>
+
 </body>
 </html>

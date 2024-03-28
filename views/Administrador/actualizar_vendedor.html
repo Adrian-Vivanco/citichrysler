@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <script src="../js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="../css/bg.css">
+    <link href="../css/login.css" rel="stylesheet" />
     <script src="https://kit.fontawesome.com/e07784388c.js" crossorigin="anonymous"></script>
 
     <style>
@@ -16,6 +17,79 @@
             height: auto; /* Mantiene la proporción de aspecto */
             display: block; /* Permite la alineación vertical */
             margin: 0 auto; /* Centra horizontalmente */
+        }
+
+        /* Estilos similares al formulario de inicio de sesión */
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background-color: #343a40;
+            color: #fff;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .card-body {
+            padding: 40px;
+        }
+
+        .form-control {
+            border-radius: 20px;
+            width: 100%; /* Establecer el ancho al 100% */
+        }
+
+        .btn {
+            border-radius: 20px;
+            padding: 12px 20px;
+            font-size: 16px;
+        }
+
+        .btn-color {
+            background-color: #343a40;
+            color: #fff;
+            transition: background-color 0.3s;
+        }
+
+        .btn-color:hover {
+            background-color: #212529;
+        }
+
+        .text-center {
+            margin-bottom: 20px;
+        }
+
+        .text-dark {
+            color: #000 !important;
+        }
+
+        .text-danger {
+            color: red !important;
+        }
+
+        .text-bold {
+            font-weight: bold;
+        }
+
+        .text-link {
+            text-decoration: none;
+            color: #343a40;
+            font-weight: bold;
+        }
+
+        .text-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -27,81 +101,90 @@
                 CitiChrysler  
             </a>
             <a href="registro_vendedor.html" id="empresa" class="btn text-light text-opacity-50 fs-5 ">Registrar Vendedores<i class="fa-solid fa-briefcase"></i></a>
-          <a href="consulta_vendedores.html" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Consulta Vendedores<i class="fa-solid fa-clipboard-list"></i></a>
-          <a href="mis_datos.html" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Mis Datos<i class="fa-solid fa-clipboard-list"></i></a>
-          <a href="#" id="empleados" class="btn text-light text-opacity-50 fs-5 ">Cerrar sesión<i class="fa-solid fa-person-walking-luggage"></i></a>
+            <a href="consulta_vendedores.html" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Consulta Vendedores<i class="fa-solid fa-clipboard-list"></i></a>
+            <a href="mis_datos.html" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Mis Datos<i class="fa-solid fa-clipboard-list"></i></a>
+            <a href="#" id="empleados" class="btn text-light text-opacity-50 fs-5 ">Cerrar sesión<i class="fa-solid fa-person-walking-luggage"></i></a>
         </div>
     </nav>
-
-    <div class="container mt-5">
-        <h2>Actualizar Vendedor</h2>
-        <form id="actualizarVendedorForm" enctype="application/x-www-form-urlencoded"  method="POST">
-            <input type="hidden" id="vendedorId" name="vendedorId">
-            <div class="mb-3">
-                <label for="Nombre" class="form-label">Nombre</label>
-                <input type="text" class="form-control" id="Nombre" name="Nombre" required>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card mt-5">
+                <div class="card-header">
+                    <h2>Actualizar Vendedor</h2>
+                </div>
+                <form id="actualizarVendedorForm" enctype="application/x-www-form-urlencoded"  method="POST">
+                    <input type="hidden" id="vendedorId" name="vendedorId">
+                    <div class="mb-3">
+                        <label for="Nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="Nombre" name="Nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="A_Paterno" class="form-label">Apellido Paterno</label>
+                        <input type="text" class="form-control" id="A_Paterno" name="A_Paterno" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="A_Materno" class="form-label">Apellido Materno</label>
+                        <input type="text" class="form-control" id="A_Materno" name="A_Materno" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="Email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="Email" name="Email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="Telefono" class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="Telefono" name="Telefono" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="Username" class="form-label">Nombre de Usuario</label>
+                        <input type="text" class="form-control" id="Username" name="Username" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="ID_Rol" class="form-label">Rol</label>
+                        <select class="form-select" id="ID_Rol" name="ID_Rol" required>
+                            <option value="">Seleccionar Rol</option>
+                            <option value="1">Administrador</option>
+                            <option value="2">Vendedor</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-color px-5 mb-5 w-100">Actualizar Vendedor</button>
+                </form>
             </div>
-            <div class="mb-3">
-                <label for="A_Paterno" class="form-label">Apellido Paterno</label>
-                <input type="text" class="form-control" id="A_Paterno" name="A_Paterno" required>
-            </div>
-            <div class="mb-3">
-                <label for="A_Materno" class="form-label">Apellido Materno</label>
-                <input type="text" class="form-control" id="A_Materno" name="A_Materno" required>
-            </div>
-            <div class="mb-3">
-                <label for="Email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="Email" name="Email" required>
-            </div>
-            <div class="mb-3">
-                <label for="Telefono" class="form-label">Teléfono</label>
-                <input type="text" class="form-control" id="Telefono" name="Telefono" required>
-            </div>
-            <div class="mb-3">
-                <label for="Username" class="form-label">Nombre de Usuario</label>
-                <input type="text" class="form-control" id="Username" name="Username" required>
-            </div>
-            <div class="mb-3">
-                <label for="Password" class="form-label">Contraseña</label>
-                <input type="password" class="form-control" id="Password" name="Password" required>
-            </div>
-            <div class="mb-3">
-                <label for="ID_Rol" class="form-label">Rol</label>
-                <select class="form-select" id="ID_Rol" name="ID_Rol" required>
-                    <option value="">Seleccionar Rol</option>
-                    <option value="1">Administrador</option>
-                    <option value="2">Vendedor</option>
-                    <option value="3">Usuario</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary">Actualizar Vendedor</button>
-        </form>
+        </div>
     </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const vendedorId = urlParams.get('id');
-
-        fetch(`/obtener_vendedor/${vendedorId}`)
+    
+        // Obtener datos del vendedor y cargar en el formulario
+        fetch(`/consultar_vendedor_id?id=${vendedorId}`)
             .then(response => response.json())
             .then(data => {
-                document.getElementById('vendedorId').value = data.ID_Vendedor;
-                document.getElementById('Nombre').value = data.Nombre;
-                document.getElementById('A_Paterno').value = data.A_Paterno;
-                document.getElementById('A_Materno').value = data.A_Materno;
-                document.getElementById('Email').value = data.Email;
-                document.getElementById('Telefono').value = data.Telefono;
-                document.getElementById('Username').value = data.Username;
-                document.getElementById('Password').value = data.Password;
-                document.getElementById('ID_Rol').value = data.ID_Rol;
+                if (data.length > 0) {
+                    const vendedor = data[0];
+                    document.getElementById('vendedorId').value = vendedor.ID_Vendedor;
+                    document.getElementById('Nombre').value = vendedor.Nombre;
+                    document.getElementById('A_Paterno').value = vendedor.A_Paterno;
+                    document.getElementById('A_Materno').value = vendedor.A_Materno;
+                    document.getElementById('Email').value = vendedor.Email;
+                    document.getElementById('Telefono').value = vendedor.Telefono;
+                    document.getElementById('Username').value = vendedor.Username;
+                    document.getElementById('ID_Rol').value = vendedor.ID_Rol;
+                } else {
+                    console.error('No se encontraron datos del vendedor');
+                    // Manejar el caso en que no se encuentren datos del vendedor
+                }
             })
             .catch(error => console.error('Error al obtener datos del vendedor:', error));
-
+    
+        // Manejar el envío del formulario para actualizar datos
         document.getElementById('actualizarVendedorForm').addEventListener('submit', function(event) {
             event.preventDefault();
-
-            const formData = new FormData(this); 
-
+    
+            // Obtener los valores de los campos del formulario
+            const formData = new FormData(this);
+    
             fetch(`/actualizar_vendedor/${vendedorId}`, {
                 method: 'PUT',
                 body: formData
@@ -137,6 +220,8 @@
             .catch(error => console.error('Error al cerrar sesión:', error));
         });
     </script>
-</body>
+    
+    
+    </body>
 </html>
 

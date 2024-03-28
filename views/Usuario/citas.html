@@ -68,13 +68,21 @@
                 <label for="cotizacionInput" class="form-label">Cotización</label>
                 <input type="file" class="form-control" id="cotizacionInput" name="cotizacion" accept=".pdf">
             </div>
-            <button type="submit" class="btn btn-primary" onclick="enviarDocumentos()">Guardar</button>
+            <button type="submit" class="btn btn-primary">Guardar</button>
             <button type="button" class="btn btn-secondary" onclick="ocultarFormDocumentos()">Cancelar</button>
         </form>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script>
+// Función para formatear la fecha en formato legible
+function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZone: 'America/Mexico_City' };
+            return new Date(dateString).toLocaleString('es-MX', options);
+        }
+
+
+
         // Hacer una solicitud al servidor para obtener las citas del vendedor actualmente autenticado
         fetch('/consultar_citas_usuario')
             .then(response => response.json())
@@ -97,7 +105,7 @@
                             <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
                             <p class="card-text"><b>Asistencia:</b> ${cita.Asistencia_Cita}</p>
                             <p class="card-text"><b>Vendedor:</b> ${nombreVendedor}</p>
-                            <p class="card-text"><b>Fecha de Cita:</b> ${fechaCita}</p>
+                            <p class="card-text"><b>Fecha de Cita:</b> ${formatDate(cita.Fecha_Cita)}</p>
                             <button class="btn btn-warning" onclick="verDetalles('${cita.ID_Cita}')">Detalles de cita</button>
                             <button class="btn btn-danger" onclick="cancelarCita('${cita.ID_Cita}', '${nombreVendedor}')">Cancelar Cita</button>
                         </div>
