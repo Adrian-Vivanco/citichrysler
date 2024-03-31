@@ -54,6 +54,41 @@
     </div>
 
     <script>
+        // Definir la función confirmarBajaCuenta fuera de cualquier función para que esté disponible en todo el ámbito del script
+        function confirmarBajaCuenta() {
+            // Hacer una solicitud al servidor para verificar si hay citas programadas para este usuario
+            fetch('/verificar_citas_programadas')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.citas_programadas) {
+                        // Si hay citas programadas, mostrar un mensaje indicando que no se puede dar de baja la cuenta
+                        alert("Aún tiene citas programadas, no podemos darlo de baja hasta haber terminado los procesos pendientes");
+                    } else {
+                        // Si no hay citas programadas, mostrar un mensaje de confirmación para dar de baja la cuenta
+                        if (confirm("¿Está seguro? Sus datos se borrarán permanentemente de esta cuenta.")) {
+                            // Si el usuario confirma, hacer una solicitud al servidor para eliminar la cuenta
+                            fetch('/eliminar_cuenta', {
+                                method: 'POST'
+                            })
+                            .then(response => {
+                                if (response.ok) {
+                                    // Si la eliminación de la cuenta fue exitosa, obtener la URL de redirección desde la respuesta JSON
+                                    return response.json().then(data => {
+                                        // Redirigir al usuario a la página principal
+                                        window.location.href = data.redirectUrl;
+                                    });
+                                } else {
+                                    // Si hubo un error al eliminar la cuenta, mostrar el mensaje de error
+                                    console.error('Error al eliminar la cuenta:', response.statusText);
+                                }
+                            })
+                            .catch(error => console.error('Error al eliminar la cuenta:', error));
+                        }
+                    }
+                })
+                .catch(error => console.error('Error al verificar citas programadas:', error));
+        }
+
         // Hacer una solicitud al servidor para obtener los datos del usuario actual
         fetch('/obtener_datos_usuario_actual')
             .then(response => response.json())
@@ -67,9 +102,9 @@
                     <p><strong>Email:</strong> ${data.Email}</p>
                     <p><strong>Teléfono:</strong> ${data.Telefono}</p>
                     <p><strong>Nombre de Usuario:</strong> ${data.Username}</p>
-                    <center><button class="btn btn-warning" onclick="#">Modificar mis datos</button></center>
+                    <center><button class="btn " onclick="#" style="background-color: #46bbc4;  color: #fff;">Modificar mis datos</button></center>
                     <br>
-                    <center><button class="btn btn-danger" onclick="#">Dar de baja mi cuenta</button></center>
+                    <center><button class="btn btn-danger" onclick="confirmarBajaCuenta()">Dar de baja mi cuenta</button></center>
                     <!-- Agrega más campos según sea necesario -->
                 `;
             })

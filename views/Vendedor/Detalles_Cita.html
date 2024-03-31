@@ -35,15 +35,15 @@
                     </tr>
                 </thead>
                 <tbody id="documentosContainer">
-                    <!-- Aquí se mostrarán los documentos o el mensaje -->
+                    
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- JavaScript para cargar los documentos de la cita -->
+    
     <script>
-        // Función para cargar los documentos de la cita utilizando AJAX
+        
         function cargarDocumentosCita(idCita) {
             fetch(`/obtener_documentos_cita/${idCita}`)
             .then(response => {
@@ -71,22 +71,22 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                // Mostrar un mensaje de error en lugar de los documentos
+                
                 const documentosContainer = document.getElementById('documentosContainer');
                 documentosContainer.innerHTML = `<tr><td colspan="4">Error al cargar los documentos de la cita</td></tr>`;
             });
         }
 
-        // Obtener el ID de la cita de la URL
+        
         const urlParams = new URLSearchParams(window.location.search);
         const idCita = urlParams.get('id');
 
-        // Cargar los documentos de la cita al cargar la página
+        
         if (idCita) {
             cargarDocumentosCita(idCita);
         } else {
             console.error('ID de cita no especificado en la URL');
-            // Mostrar un mensaje de error en lugar de los documentos si no se proporciona el ID de la cita
+           
             const documentosContainer = document.getElementById('documentosContainer');
             documentosContainer.innerHTML = `<tr><td colspan="4">ID de cita no especificado</td></tr>`;
         }

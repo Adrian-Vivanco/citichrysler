@@ -67,8 +67,8 @@ function formatDate(dateString) {
                             <p class="card-text"><b>Nombre de Usuario:</b> ${vendedor.Username}</p>
                             <p class="card-text"><b>Fecha_Alta:</b> ${formatDate(vendedor.Fecha_Alta)}</p>
                             <hr>
-                            <button type="button" class="btn btn-success citi-vendedor" data-vendedor-id="${vendedor.ID_Vendedor}">Ver citas</button>
-                            <button type="button" class="btn btn-warning edit-vendedor" data-vendedor-id="${vendedor.ID_Vendedor}">Editar Vendedor</button>
+                            <button type="button" class="btn  citi-vendedor" data-vendedor-id="${vendedor.ID_Vendedor}" style="background-color: #46bbc4;  color: #fff;">Ver citas</button>
+                            <button type="button" class="btn  edit-vendedor" data-vendedor-id="${vendedor.ID_Vendedor}"style="background-color: #76babf; color: #fff;">Editar Vendedor</button>
                             <button type="button" class="btn btn-danger delete-vendedor" data-vendedor-id="${vendedor.ID_Vendedor}" data-vendedor-name="${vendedor.Nombre}">Eliminar Vendedor</button>
                             <!-- Puedes agregar más información según tu diseño -->
                         </div>

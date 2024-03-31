@@ -479,7 +479,7 @@ app.get('/obtener_documentos_cita/:idCita', (req, res) => {
             console.error("Error al obtener los documentos de la cita:", error);
             res.status(500).send("Error interno al obtener los documentos de la cita");
         } else {
-            if (results.length > 0) {
+            if (results && results.length > 0) {
                 // Si se encontraron resultados
                 const documentosCita = results[0];
                 
@@ -488,15 +488,19 @@ app.get('/obtener_documentos_cita/:idCita', (req, res) => {
                 for (const key in documentosCita) {
                     if (documentosCita.hasOwnProperty(key)) {
                         const documentoBinario = documentosCita[key];
-                        const base64Documento = Buffer.from(documentoBinario).toString('base64');
-                        base64Documentos[key] = base64Documento;
+                        if (documentoBinario !== null) {
+                            const base64Documento = Buffer.from(documentoBinario).toString('base64');
+                            base64Documentos[key] = base64Documento;
+                        } else {
+                            base64Documentos[key] = null;
+                        }
                     }
                 }
                 
                 res.status(200).json(base64Documentos);
             } else {
-                // Si no se encontraron resultados, enviar un mensaje indicando que la cita no existe
-                res.status(404).send("La cita no existe o no tiene documentos asociados");
+                // Si no se encontraron documentos asociados, devolver un objeto vacío
+                res.status(200).json({});
             }
         }
     });
@@ -762,12 +766,30 @@ app.post('/Usuario/guardar_documentos', (req, res) => {
 
 
 // INSERTAR DOCUMENTOS CON LA CITA
-app.post('/Usuario/insertar_documentos_cita', (req, res) => {
-    const { pruebaManejo, comprobanteDomicilio, identificacionOficial, cotizacion, citaId } = req.body;
+const multer = require('multer');
+const upload = multer();
 
-    // Primero, insertamos los documentos
+// Ruta para insertar documentos con la cita
+app.post('/Usuario/insertar_documentos_cita', upload.fields([
+    { name: 'pruebaManejo', maxCount: 1 },
+    { name: 'comprobanteDomicilio', maxCount: 1 },
+    { name: 'identificacionOficial', maxCount: 1 },
+    { name: 'cotizacion', maxCount: 1 }
+]), (req, res) => {
+    // Extraer los nombres de los archivos cargados desde req.files
+    const { pruebaManejo, comprobanteDomicilio, identificacionOficial, cotizacion } = req.files;
+
+    // Extraer otros datos del formulario desde req.body
+    const { citaId } = req.body;
+
+    // Verificar si se cargaron todos los archivos necesarios
+    if (!pruebaManejo || !comprobanteDomicilio || !identificacionOficial || !cotizacion) {
+        return res.status(400).send('Falta uno o más archivos requeridos.');
+    }
+
+    // Primero, insertamos los documentos en la base de datos
     const documentosQuery = 'INSERT INTO documentos (Prueba_Manejo, Comprobante_Domicilio, Identificacion_Oficial, Cotizacion, Fecha_Alta) VALUES (?, ?, ?, ?, NOW())';
-    connection.query(documentosQuery, [pruebaManejo, comprobanteDomicilio, identificacionOficial, cotizacion], (error, documentosResult) => {
+    connection.query(documentosQuery, [pruebaManejo[0].buffer, comprobanteDomicilio[0].buffer, identificacionOficial[0].buffer, cotizacion[0].buffer], (error, documentosResult) => {
         if (error) {
             console.error('Error al guardar los documentos en la base de datos:', error);
             return res.status(500).send('Error interno del servidor');
@@ -789,7 +811,6 @@ app.post('/Usuario/insertar_documentos_cita', (req, res) => {
         });
     });
 });
-
 
 
 
@@ -834,6 +855,43 @@ app.post('/cancelar_cita', (req, res) => {
         });
     });
 });
+
+
+// ELIMINAR CUENTA DE USUARIO
+app.post('/eliminar_cuenta', (req, res) => {
+    const usuarioId = req.user.id; // Suponiendo que tienes la información del usuario en el objeto de solicitud req
+
+    // Verificar si hay citas programadas para este usuario
+    connection.query('SELECT COUNT(*) AS num_citas FROM citas WHERE ID_Usuario = ?', usuarioId, (error, results) => {
+        if (error) {
+            console.error('Error al verificar citas programadas:', error);
+            return res.status(500).json({ error: 'Error interno del servidor' });
+        }
+
+        const numCitas = results[0].num_citas;
+
+        if (numCitas > 0) {
+            // Si hay citas programadas, enviar un mensaje indicando que no se puede eliminar la cuenta
+            return res.status(400).json({ message: 'Aún tiene citas programadas, no podemos darlo de baja hasta haber terminado los procesos pendientes' });
+        } else {
+            // Si no hay citas programadas, proceder con la eliminación de la cuenta del usuario
+            connection.query('DELETE FROM usuario WHERE ID_Usuario = ?', usuarioId, (error, results) => {
+                if (error) {
+                    console.error('Error al eliminar la cuenta:', error);
+                    return res.status(500).json({ error: 'Error interno del servidor' });
+                }
+
+                console.log(`Cuenta de usuario con ID ${usuarioId} eliminada exitosamente`);
+
+                // Devuelve la URL a la que el cliente debe redirigirse después de eliminar la cuenta
+                return res.status(200).json({ redirectUrl: '/index.html' });
+            });
+        }
+    });
+});
+
+
+
 
 
 

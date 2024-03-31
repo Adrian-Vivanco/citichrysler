@@ -47,11 +47,11 @@
             font-size: 18px;
         }
         .current-day {
-            background-color: #4caf50;
+            background-color: #46bbc4;
             color: #fff;
         }
         .has-appointment {
-            background-color: #ff0000;
+            background-color: #336265;
             color: #fff;
         }
     </style>
@@ -122,7 +122,7 @@
                             <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
                             <p class="card-text"><b>Fecha de Cita:</b> ${fechaHoraString}</p>
                             <hr>
-                            <button type="button" class="btn btn-warning" onclick="tomarCita(${cita.ID_Cita}, '${cita.Fecha_Cita}')">Tomar cita</button>
+                            <button type="button" class="btn " onclick="tomarCita(${cita.ID_Cita}, '${cita.Fecha_Cita}')" style="background-color: #46bbc4;  color: #fff;">Tomar cita</button>
                         </div>
                     `;
     

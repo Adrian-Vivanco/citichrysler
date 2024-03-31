@@ -7,7 +7,81 @@
 <script src="../js/bootstrap.bundle.min.js"></script>
 <link rel="stylesheet" href="../css/bg.css">
 <link rel="stylesheet" href="../css/table.css">
+<link href="../css/login.css" rel="stylesheet" />
 <style>
+    /* Estilos similares al formulario de inicio de sesión */
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .container {
+        margin-top: 50px;
+    }
+
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background-color: #343a40;
+        color: #fff;
+        text-align: center;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .card-body {
+        padding: 40px;
+    }
+
+    .form-control {
+        border-radius: 20px;
+        width: 100%; /* Establecer el ancho al 100% */
+    }
+
+    .btn {
+        border-radius: 20px;
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+
+    .btn-color {
+        background-color: #343a40;
+        color: #fff;
+        transition: background-color 0.3s;
+    }
+
+    .btn-color:hover {
+        background-color: #212529;
+    }
+
+    .text-center {
+        margin-bottom: 20px;
+    }
+
+    .text-dark {
+        color: #000 !important;
+    }
+
+    .text-danger {
+        color: red !important;
+    }
+
+    .text-bold {
+        font-weight: bold;
+    }
+
+    .text-link {
+        text-decoration: none;
+        color: #343a40;
+        font-weight: bold;
+    }
+
+    .text-link:hover {
+        text-decoration: underline;
+    }
+
     /* Define el tamaño máximo para todas las imágenes */
     .custom-img {
         max-width: 200px; /* Ajusta el valor según el tamaño máximo deseado */
@@ -47,11 +121,15 @@
             <!-- Aquí se cargarán las citas -->
         </div>
     </div>
-
-    <div class="container mt-3" id="formDocumentos" style="display: none;">
+    <center>
+    <div class="row justify-content-center" id="formDocumentos" style="display: none;">
+        <div class="col-md-6">
+            <div class="card mt-5">
+                <div class="card-header">
         <h3>Documentos</h3>
-        <form id="crearDocumentosForm" action="/Usuario/insertar_documentos_cita" method="post">
-            <input type="hidden" id="citaIdInput" name="citaId">
+    </div>
+    <form id="crearDocumentosForm" action="/Usuario/insertar_documentos_cita" enctype="multipart/form-data" method="post">
+        <input type="hidden" id="citaIdInput" name="citaId">
             <div class="mb-3">
                 <label for="pruebaManejoInput" class="form-label">Prueba de Manejo</label>
                 <input type="file" class="form-control" id="pruebaManejoInput" name="pruebaManejo" accept=".pdf">
@@ -68,13 +146,43 @@
                 <label for="cotizacionInput" class="form-label">Cotización</label>
                 <input type="file" class="form-control" id="cotizacionInput" name="cotizacion" accept=".pdf">
             </div>
-            <button type="submit" class="btn btn-primary">Guardar</button>
+            <button type="submit" class="btn btn-color">Guardar</button>
             <button type="button" class="btn btn-secondary" onclick="ocultarFormDocumentos()">Cancelar</button>
         </form>
     </div>
-
+</center>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script>
+        function convertirYEnviar() {
+    // Obtener los archivos seleccionados
+    const formData = new FormData();
+    formData.append('pruebaManejo', document.getElementById('pruebaManejoInput').files[0]);
+    formData.append('comprobanteDomicilio', document.getElementById('comprobanteDomicilioInput').files[0]);
+    formData.append('identificacionOficial', document.getElementById('identificacionOficialInput').files[0]);
+    formData.append('cotizacion', document.getElementById('cotizacionInput').files[0]);
+    formData.append('citaId', document.getElementById('citaIdInput').value);
+
+    // Enviar el formulario
+    fetch('/Usuario/insertar_documentos_cita', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.text();
+        }
+        throw new Error('Error al enviar los archivos al servidor.');
+    })
+    .then(data => {
+        // Manejar la respuesta del servidor
+        alert(data); // Mostrar mensaje de éxito o hacer otras acciones necesarias
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Manejar errores, por ejemplo, mostrar un mensaje de error al usuario
+    });
+}
+
 // Función para formatear la fecha en formato legible
 function formatDate(dateString) {
             const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZone: 'America/Mexico_City' };
@@ -106,7 +214,7 @@ function formatDate(dateString) {
                             <p class="card-text"><b>Asistencia:</b> ${cita.Asistencia_Cita}</p>
                             <p class="card-text"><b>Vendedor:</b> ${nombreVendedor}</p>
                             <p class="card-text"><b>Fecha de Cita:</b> ${formatDate(cita.Fecha_Cita)}</p>
-                            <button class="btn btn-warning" onclick="verDetalles('${cita.ID_Cita}')">Detalles de cita</button>
+                            <button class="btn" onclick="verDetalles('${cita.ID_Cita}')" style="background-color: #46bbc4;  color: #fff;">Detalles de cita</button>
                             <button class="btn btn-danger" onclick="cancelarCita('${cita.ID_Cita}', '${nombreVendedor}')">Cancelar Cita</button>
                         </div>
                     `;

@@ -102,48 +102,56 @@
         <div class="col-md-6">
             <div class="card mt-5">
                 <div class="card-header">
-        <h2>Registro de Nuevo Vendedor</h2>
+                    <h2>Registro de Nuevo Vendedor</h2>
+                </div>
+                <div class="text-center mb-5 text-dark"></div>
+                <div class="card my-5">
+                    <form id="registroForm" action="/Administrador/procesar_formulario" enctype="application/x-www-form-urlencoded" method="POST">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="Nombre" name="Nombre" placeholder="Nombre" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="A_Paterno" name="A_Paterno" placeholder="Apellido Paterno" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="A_Materno" name="A_Materno" placeholder="Apellido Materno" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="email" class="form-control" id="Email" name="Email" placeholder="Correo" required oninput="validarCorreo()">
+                            <div id="emailHelp" class="form-text text-danger"></div>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="Telefono" name="Telefono" placeholder="Número de Teléfono" maxlength="10" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="file" class="form-control" id="Foto" name="Foto" placeholder="Foto de perfil" required accept="image/*">
+                            <img id="imagenPrevista" src="#" alt="" style="max-width: 200px; max-height: 200px;">
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="Username" name="Username" placeholder="Nombre de usuario" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" class="form-control same-size" id="password" name="Password" placeholder="Contraseña" required oninput="validarPassword()">
+                            <div id="passwordHelp" class="form-text text-danger"></div>
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" class="form-control same-size" id="confirmPassword" name="ConfirmPassword" placeholder="Confirmar Contraseña" required oninput="validarConfirmacionPassword()">
+                            <div id="confirmPasswordHelp" class="form-text text-danger"></div>
+                        </div>
+                        <div class="mb-3">
+                            <select class="form-select" id="ID_Rol" name="ID_Rol" required>
+                                <option value="">Seleccionar Rol</option>
+                                <option value="1">Administrador</option>
+                                <option value="2">Vendedor</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-color px-5 mb-5 w-100" id="btnRegistrar" disabled>Registrar Vendedor</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="text-center mb-5 text-dark"></div>
-    <div class="card my-5">
-        <form id="registroForm" action="/Administrador/procesar_formulario" enctype="application/x-www-form-urlencoded" method="POST">
-            <div class="mb-3">
-                
-                <input type="text" class="form-control" id="Nombre" name="Nombre" placeholder="Nombre"  required>
-            </div>
-            <div class="mb-3">
-                <input type="text" class="form-control" id="A_Paterno" name="A_Paterno" placeholder="Apellido Paterno"  required>
-            </div>
-            <div class="mb-3">
-                <input type="text" class="form-control" id="A_Materno" name="A_Materno" placeholder="Apellido Materno"  required>
-            </div>
-            <div class="mb-3">
-                <input type="email" class="form-control" id="Email" name="Email" placeholder="Correo"  required>
-            </div>
-            <div class="mb-3">
-                <input type="text" class="form-control" id="Telefono" name="Telefono" placeholder="Número de Teléfono"  maxlength="10"  required>
-            </div>
-            <div class="mb-3">
-                <input type="file" class="form-control" id="Foto" name="Foto" placeholder="Foto de perfil"  required accept="image/*">
-                <img id="imagenPrevista" src="#" alt="" style="max-width: 200px; max-height: 200px;">
-            </div>
-            <div class="mb-3">
-                <input type="text" class="form-control" id="Username" name="Username" placeholder="Nombre de usuario"  required>
-            </div>
-            <div class="mb-3">
-                <input type="password" class="form-control same-size" id="password" name="Password" placeholder="Contraseña" required>
-            </div>
-            <div class="mb-3">
-                <select class="form-select" id="ID_Rol" name="ID_Rol" required>
-                    <option value="">Seleccionar Rol</option>
-                    <option value="1">Administrador</option>
-                    <option value="2">Vendedor</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-color px-5 mb-5 w-100" id="btnRegistrar">Registrar Vendedor</button>
-        </form>
-    </div>
-            </div>
+    
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         function convertirImagenABase64(input) {
@@ -161,7 +169,72 @@
         $("#Foto").change(function(){
             convertirImagenABase64(this);
         });
-    
+
+        function validarCorreo() {
+            var correo = document.getElementById("Email").value;
+            var correoSinEspacios = correo.trim(); // Eliminar espacios en blanco al inicio y al final
+
+            if (!correoSinEspacios.endsWith("@gmail.com")) {
+                document.getElementById("emailHelp").innerText = "El correo debe ser de Gmail.";
+                return false;
+            } else {
+                document.getElementById("emailHelp").innerText = "";
+                return true;
+            }
+        }
+
+        function validarPassword() {
+            var password = document.getElementById("password").value;
+            var regex = /^(?=.*[A-Z])(?=.*[0-9.])(?=.{8,})/;
+            if (!regex.test(password)) {
+                document.getElementById("passwordHelp").innerText = "La contraseña debe tener al menos una letra mayúscula, un dígito o un punto, y una longitud mínima de 8 caracteres.";
+                return false;
+            } else {
+                document.getElementById("passwordHelp").innerText = "";
+                return true;
+            }
+        }
+
+        function validarConfirmacionPassword() {
+            var password = document.getElementById("password").value;
+            var confirmPassword = document.getElementById("confirmPassword").value;
+            if (password !== confirmPassword) {
+                document.getElementById("confirmPasswordHelp").innerText = "Las contraseñas no coinciden.";
+                return false;
+            } else {
+                document.getElementById("confirmPasswordHelp").innerText = "";
+                return true;
+            }
+        }
+
+        function validarFormulario() {
+            var correoValido = validarCorreo();
+            var passwordValida = validarPassword();
+            var confirmacionPasswordValida = validarConfirmacionPassword();
+            var campos = document.querySelectorAll('input[required]');
+            var formularioCompleto = true;
+
+            campos.forEach(function (campo) {
+                if (!campo.value) {
+                    formularioCompleto = false;
+                }
+            });
+
+            if (correoValido && passwordValida && confirmacionPasswordValida && formularioCompleto) {
+                document.getElementById("btnRegistrar").disabled = false;
+            } else {
+                document.getElementById("btnRegistrar").disabled = true;
+            }
+
+            return correoValido && passwordValida && confirmacionPasswordValida && formularioCompleto;
+        }
+
+        // Agregar evento input a cada campo requerido
+        var camposRequeridos = document.querySelectorAll('input[required]');
+        camposRequeridos.forEach(function (campo) {
+            campo.addEventListener('input', validarFormulario);
+        });
+
         // Manejar el clic en el botón "Cerrar sesión"
         document.getElementById('empleados').addEventListener('click', function(event) {
             event.preventDefault(); // Evitar el comportamiento predeterminado del enlace
@@ -180,15 +253,6 @@
             })
             .catch(error => console.error('Error al cerrar sesión:', error));
         });
-
-
-
-
-        
-
-
-        
     </script>
 </body>
 </html>
-

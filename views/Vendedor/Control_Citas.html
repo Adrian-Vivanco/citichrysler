@@ -47,11 +47,11 @@
             font-size: 18px;
         }
         .current-day {
-            background-color: #4caf50;
+            background-color: #46bbc4;
             color: #fff;
         }
         .has-appointment {
-            background-color: #ff0000;
+            background-color: #336265;
             color: #fff;
         }
     </style>
@@ -187,8 +187,8 @@
                             </div>
                         </div>
                         <hr>
-                        <button type="button" class="btn btn-primary" onclick="mostrarDetallesCita(${cita.ID_Cita})">Detalles de cita</button>
-                        <button type="button" class="btn btn-warning" onclick="modificarFechaCita(${cita.ID_Cita})">Fecha de cita</button>
+                        <button type="button" class="btn" onclick="mostrarDetallesCita(${cita.ID_Cita})"style="background-color: #46bbc4;  color: #fff;">Detalles de cita</button>
+                        <button type="button" class="btn" onclick="modificarFechaCita(${cita.ID_Cita})" style="background-color: #76babf; color: #fff;">Fecha de cita</button>
                         <button type="button" class="btn btn-danger" onclick="dejarCita(${cita.ID_Cita})">Dejar cita</button>
                     </div>`;
                 citasContainer.appendChild(citaCard);
