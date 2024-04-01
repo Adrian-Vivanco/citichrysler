@@ -198,7 +198,7 @@ function formatDate(dateString) {
                 // Iterar sobre los datos y crear elementos HTML para cada cita
                 data.forEach(cita => {
                     const citaCard = document.createElement('div');
-                    citaCard.classList.add('card', 'col-sm-4', 'm-2', 'p-1');
+                    citaCard.classList.add('card', 'col-sm-4', 'm-6', 'p-1');
                     
                     // Formatear la fecha y hora en el formato deseado (en este caso, formato completo de México)
                     const fechaCita = moment(cita.Fecha_Cita).locale('es').format('LLLL');
