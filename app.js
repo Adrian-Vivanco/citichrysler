@@ -11,10 +11,11 @@ const server = http.createServer(app);
 
 // Configurar la conexión a la base de datos MySQL
 const connection = mysql.createConnection({
-    host: 'localhost',
+    host: 'monorail.proxy.rlwy.net',
+    port:'47223',
     user: 'root',
-    password: 'ultraninja75',
-    database: 'citichrysler'
+    password: 'WNrMpBICqSmciPqqPILelCCfaKnLlDrk',
+    database: 'railway'
 });
 
 //configuración de express-sesion

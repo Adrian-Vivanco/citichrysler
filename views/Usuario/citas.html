@@ -212,6 +212,7 @@ function formatDate(dateString) {
                             <h5 class="card-title">${cita.Nombre_Usuario}  </h5>
                             <p class="card-text"><b>Asunto:</b> ${cita.Asunto}</p>
                             <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
+                            <p class="card-text"><b>Estado de cita:</b> ${cita.Estado_Cita}</p>
                             <p class="card-text"><b>Asistencia:</b> ${cita.Asistencia_Cita}</p>
                             <p class="card-text"><b>Vendedor:</b> ${nombreVendedor}</p>
                             <p class="card-text"><b>Fecha de Cita:</b> ${formatDate(cita.Fecha_Cita)}</p>
@@ -302,6 +303,7 @@ function formatDate(dateString) {
             })
             .catch(error => console.error('Error al cerrar sesión:', error));
         });
+        
     </script>
 </body>
 </html>
