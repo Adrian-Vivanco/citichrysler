@@ -472,10 +472,11 @@ const fs = require('fs');
 app.get('/obtener_documentos_cita/:idCita', (req, res) => {
     const idCita = req.params.idCita;
 
-    connection.query(`SELECT Prueba_Manejo, Comprobante_Domicilio, Identificacion_Oficial, Cotizacion
-                      FROM Citas
-                      LEFT JOIN Documentos ON Citas.ID_Documentos = Documentos.ID_Documentos
-                      WHERE Citas.ID_Cita = ?`, [idCita], (error, results) => {
+    connection.query(`SELECT documentos.Prueba_Manejo, documentos.Comprobante_Domicilio, 
+    documentos.Identificacion_Oficial, documentos.Cotizacion
+    FROM citas
+    LEFT JOIN documentos ON citas.ID_Documentos = documentos.ID_Documentos
+    WHERE citas.ID_Cita = ?`, [idCita], (error, results) => {
         if (error) {
             console.error("Error al obtener los documentos de la cita:", error);
             res.status(500).send("Error interno al obtener los documentos de la cita");
