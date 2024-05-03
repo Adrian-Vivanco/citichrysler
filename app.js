@@ -84,7 +84,7 @@ app.post('/Administrador/procesar_formulario', async (req, res) => {
 
             if (results.length > 0) {
                 console.log('El correo electrónico ya está registrado');
-                return res.status(400).send('El correo electrónico ya está registrado');
+                return res.send('<script>alert("El correo electrónico ya está registrado"); window.location.href = "/Administrador/registro_vendedor.html";</script>');
             }
 
             // Verificar si el nombre de usuario ya está registrado
@@ -96,7 +96,7 @@ app.post('/Administrador/procesar_formulario', async (req, res) => {
 
                 if (results.length > 0) {
                     console.log('El nombre de usuario ya está en uso');
-                    return res.status(400).send('El nombre de usuario ya está en uso');
+                    return res.send('<script>alert("El nombre de usuario ya está en uso"); window.location.href = "/Administrador/registro_vendedor.html";</script>');
                 }
 
                 // Si el correo electrónico y el nombre de usuario no están registrados, insertar el nuevo vendedor
@@ -108,7 +108,7 @@ app.post('/Administrador/procesar_formulario', async (req, res) => {
                             return res.status(500).send('Error interno del servidor');
                         }
                         console.log('Vendedor registrado exitosamente en la base de datos');
-                        return res.status(200).send('Vendedor registrado exitosamente');
+                        return res.send('<script>alert("Vendedor registrado exitosamente"); window.location.href = "/Administrador/registro_vendedor.html";</script>');
                     }
                 );
             });
@@ -592,6 +592,9 @@ app.post('/registro_usuario_nuevo', async (req, res) => {
         // Encriptar la contraseña 
         const hashedPassword = await argon2.hash(Password);
 
+        let emailExists = false;
+        let usernameExists = false;
+
         // Verificar si el correo ya existe en la base de datos
         connection.query('SELECT COUNT(*) AS count FROM usuario WHERE Email = ?', [Email], async (error, results) => {
             if (error) {
@@ -599,10 +602,10 @@ app.post('/registro_usuario_nuevo', async (req, res) => {
                 return res.status(500).send('Error interno del servidor');
             }
 
-            const count = results[0].count;
-            if (count > 0) {
+            const countEmail = results[0].count;
+            if (countEmail > 0) {
                 console.log('El correo electrónico ya está registrado');
-                return res.status(400).send('El correo electrónico ya está registrado');
+                emailExists = true;
             }
 
             // Verificar si el nombre de usuario ya está en uso
@@ -612,10 +615,17 @@ app.post('/registro_usuario_nuevo', async (req, res) => {
                     return res.status(500).send('Error interno del servidor');
                 }
 
-                const count = results[0].count;
-                if (count > 0) {
+                const countUsername = results[0].count;
+                if (countUsername > 0) {
                     console.log('El nombre de usuario ya está en uso');
-                    return res.status(400).send('El nombre de usuario ya está en uso');
+                    usernameExists = true;
+                }
+
+                // Si el correo electrónico o el nombre de usuario ya están en uso, enviar la respuesta correspondiente
+                if (emailExists) {
+                    return res.send('<script>alert("El correo electrónico ya está registrado"); window.location.href = "/crear_cuenta.html";</script>');
+                } else if (usernameExists) {
+                    return res.send('<script>alert("El nombre de usuario ya está en uso"); window.location.href = "/crear_cuenta.html";</script>');
                 }
 
                 // Si el correo electrónico y el nombre de usuario no están en uso, insertar la nueva cuenta de usuario en la base de datos
@@ -635,6 +645,7 @@ app.post('/registro_usuario_nuevo', async (req, res) => {
         return res.status(500).send('Error interno del servidor');
     }
 });
+
 
 
 
@@ -696,7 +707,7 @@ app.get('/consultar_citas_usuario', (req, res) => {
 // INSERTAR CITA
 app.post('/Usuario/procesar_formulario_cita', (req, res) => {
     const { Asunto, Fecha_Cita } = req.body;
-    const ID_Usuario = req.session.user.ID_Usuario; 
+    const ID_Usuario = req.session.user.ID_Usuario;
 
     let ID_Cita_Prioridad = 2; // Prioridad baja por defecto
     if (req.body.ID_Documentos) {
@@ -706,12 +717,12 @@ app.post('/Usuario/procesar_formulario_cita', (req, res) => {
     const fechaActual = new Date();
     const fechaCita = new Date(Fecha_Cita);
     if (fechaCita <= fechaActual) {
-        return res.status(400).send('La fecha de la cita debe ser posterior a la fecha actual');
+        return res.send('<script>alert("La fecha de la cita debe ser posterior a la fecha actual"); window.location.href = "/Usuario/index.html";</script>');
     }
 
     const horaCita = fechaCita.getHours();
     if (horaCita < 10 || horaCita >= 18) {
-        return res.status(400).send('La hora de la cita debe estar entre las 10:00 am y las 6:00 pm');
+        return res.send('<script>alert("La hora de la cita debe estar entre las 10:00 am y las 6:00 pm"); window.location.href = "/Usuario/index.html";</script>');
     }
 
     console.log('Datos recibidos del formulario de cita:');
@@ -727,9 +738,10 @@ app.post('/Usuario/procesar_formulario_cita', (req, res) => {
             return res.status(500).send('Error interno del servidor');
         }
         console.log('Cita registrada exitosamente en la base de datos');
-        return res.status(200).send('Cita registrada exitosamente');
+        return res.send('<script>alert("Cita registrada exitosamente"); window.location.href = "/Usuario/index.html";</script>');
     });
 });
+
 
 
 
@@ -786,8 +798,7 @@ app.post('/Usuario/insertar_documentos_cita', upload.fields([
 
     // Verificar si se cargaron todos los archivos necesarios
     if (!pruebaManejo || !comprobanteDomicilio || !identificacionOficial || !cotizacion) {
-        return res.status(400).send('Falta uno o más archivos requeridos.');
-    }
+        return res.send('<script>alert("Faltan uno o más archivos"); window.location.href = "/Usuario/citas.html";</script>');    }
 
     // Primero, insertamos los documentos en la base de datos
     const documentosQuery = 'INSERT INTO documentos (Prueba_Manejo, Comprobante_Domicilio, Identificacion_Oficial, Cotizacion, Fecha_Alta) VALUES (?, ?, ?, ?, NOW())';
@@ -809,8 +820,7 @@ app.post('/Usuario/insertar_documentos_cita', upload.fields([
             }
 
             console.log('Documentos y cita actualizados exitosamente en la base de datos');
-            return res.status(200).send('Documentos y cita actualizados exitosamente');
-        });
+            return res.send('<script>alert("Documentos y cita actualizados exitosamente"); window.location.href = "/Usuario/citas.html";</script>');        });
     });
 });
 
