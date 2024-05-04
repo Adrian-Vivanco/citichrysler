@@ -1011,7 +1011,7 @@ app.post('/login', async (req, res) => {
                     }
                 }
 
-                return res.send('Usuario o contraseña incorrectos');
+                return res.send('<script>alert("Usuario o contraseña incorrectos"); window.location.href = "/login.html";</script>');
             });
         });
     } catch (error) {
@@ -1031,6 +1031,10 @@ app.get('/Usuario', (req, res) => {
 
 app.get('/Vendedor', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'Vendedor', 'index.html'));
+});
+// Redirige cualquier otra solicitud a una página específica
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'perdido.html'));
 });
 
 // Conectar a la base de datos MySQL
