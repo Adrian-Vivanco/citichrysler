@@ -6,332 +6,388 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="../css/bootstrap.min.css">
 <script src="../js/bootstrap.bundle.min.js"></script>
- <link rel="stylesheet" href="../css/bg.css">
+<link rel="stylesheet" href="../css/bg.css">
 
 
- <script src="https://kit.fontawesome.com/e07784388c.js" crossorigin="anonymous"></script>
+<script src="https://kit.fontawesome.com/e07784388c.js" crossorigin="anonymous"></script>
 
 <!-- Favicon - FIS -->
 <link rel="shortcut icon" href="../img/logo.png">
 <title>Vendedor</title>
-  <style>
-        /* Estilos para el calendario */
+<style>
+    /* Estilos para el calendario */
+    #calendar-container {
+        position: fixed;
+        top: 230px; /* Ajusta esta posición según sea necesario */
+        right: 20px; /* Ajusta esta posición según sea necesario */
+        width: 420px; /* Ajusta este tamaño según sea necesario */
+        height: 520px; /* Ajusta este tamaño según sea necesario */
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+    }
+    .calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+    }
+    .calendar-day {
+        padding: 5px;
+        border: 1px solid #ccc;
+        text-align: center;
+        font-size: 25px; /* Ajusta este tamaño según sea necesario */
+    }
+    .calendar-header {
+        font-weight: bold;
+        background-color: #f2f2f2;
+        text-align: center;
+        padding: 5px;
+        margin-bottom: 5px;
+        font-size: 18px;
+    }
+    .current-day {
+        background-color: #46bbc4;
+        color: #fff;
+    }
+    .has-appointment {
+        background-color: #336265;
+        color: #fff;
+    }
+    /* Estilos para el botón redondo del calendario */
+    #toggle-calendar {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: #46bbc4;
+        color: #fff;
+        font-size: 20px;
+        border: none;
+        cursor: pointer;
+        z-index: 1000;
+        display: none; /* Ocultar por defecto en pantallas grandes */
+    }
+    @media (max-width: 768px) {
+        /* Mostrar el botón redondo en pantallas pequeñas */
+        #toggle-calendar {
+            display: block;
+        }
+        /* Ocultar el contenedor del calendario en pantallas pequeñas */
         #calendar-container {
-            position: fixed;
-            top: 230px; /* Ajusta esta posición según sea necesario */
-            right: 20px; /* Ajusta esta posición según sea necesario */
-            width: 420px; /* Ajusta este tamaño según sea necesario */
-            height: 520px; /* Ajusta este tamaño según sea necesario */
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+            display: none;
         }
-        .calendar {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 1px;
-        }
-        .calendar-day {
-            padding: 5px;
-            border: 1px solid #ccc;
-            text-align: center;
-            font-size: 25px; /* Ajusta este tamaño según sea necesario */
-        }
-        .calendar-header {
-            font-weight: bold;
-            background-color: #f2f2f2;
-            text-align: center;
-            padding: 5px;
-            margin-bottom: 5px;
-            font-size: 18px;
-        }
-        .current-day {
-            background-color: #46bbc4;
-            color: #fff;
-        }
-        .has-appointment {
-            background-color: #336265;
-            color: #fff;
-        }
-    </style>
+    }
+    @media (max-width: 576px) {
+    /* Estilos para pantallas con un ancho máximo de 576px (generalmente teléfonos móviles en orientación vertical) */
+    #calendar-container {
+        width: 300px; /* Reducir el ancho del contenedor del calendario */
+        height: 400px; /* Reducir la altura del contenedor del calendario */
+        top: 150px; /* Ajustar la posición superior para centrarlo mejor */
+    }
+    .calendar-header {
+        font-size: 14px; /* Reducir el tamaño del texto del encabezado del calendario */
+    }
+    .calendar-day {
+        font-size: 16px; /* Reducir el tamaño del texto del día del calendario */
+        padding: 3px; /* Reducir el espacio entre los días del calendario */
+    }
+}
+</style>
 </head>
 <body>
-    <nav class="navbar navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="index.html">
-                <img src="../img/logo.png" alt="" width="50" height="50" class="d-inline-block align-text-top">
-                CitiChrysler  
-            </a>
-            <a href="Control_Citas.html" id="empresa" class="btn text-light text-opacity-50 fs-5 ">Control de Citas<i class="fa-solid fa-briefcase"></i></a>
-          <a href="mis_datos.html" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Mis datos<i class="fa-solid fa-clipboard-list"></i></a>
-          <a href="/" id="empleados" class="btn text-light text-opacity-50 fs-5 ">Cerrar sesión<i class="fa-solid fa-person-walking-luggage"></i></a>
-      
-            <form  style="color: #fff">
-              
-              
-              </form>
-      
-        </div>
-      </nav>
-      <div class="container mt-5">
-        <h2>Citas disponibles</h2>
-        <!-- Agregar el filtro de búsqueda por prioridad -->
-        <div class="mb-3" style="width: 200px; margin-bottom: 20px;">
-            <label for="filtroPrioridad" class="form-label">Filtrar busqueda:</label>
-            <select class="form-select" id="filtroPrioridad" onchange="filtrarCitas()">
-                <option value="">Todos</option>
-                <option value="Alta">Alta</option>
-                <option value="Media">Media</option>
-                <option value="Baja">Baja</option>
-            </select>
-        </div>
-        <!-- Fin del filtro de búsqueda por prioridad -->
-        <div id="citasContainer" class="row">
-        </div>
-    </div>
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="index.html">
+            <img src="../img/logo.png" alt="" width="50" height="50" class="d-inline-block align-text-top">
+            CitiChrysler  
+        </a>
+        <a href="Control_Citas.html" id="empresa" class="btn text-light text-opacity-50 fs-5 ">Control de Citas<i class="fa-solid fa-briefcase"></i></a>
+        <a href="mis_datos.html" id="competencia" class="btn text-light text-opacity-50 fs-5 ">Mis datos<i class="fa-solid fa-clipboard-list"></i></a>
+        <a href="/" id="empleados" class="btn text-light text-opacity-50 fs-5 ">Cerrar sesión<i class="fa-solid fa-person-walking-luggage"></i></a>
 
-    <div id="calendar-container">
-        <div id="calendar"></div>
-    </div>
+        <form  style="color: #fff">
 
-    <script>
-        // Hacer una solicitud al servidor para obtener los datos de la cita
+
+
+        </form>
+
+    </div>
+</nav>
+<div class="container mt-5">
+    <h2>Citas disponibles</h2>
+    <!-- Agregar el filtro de búsqueda por prioridad -->
+    <div class="mb-3" style="width: 200px; margin-bottom: 20px;">
+        <label for="filtroPrioridad" class="form-label">Filtrar busqueda:</label>
+        <select class="form-select" id="filtroPrioridad" onchange="filtrarCitas()">
+            <option value="">Todos</option>
+            <option value="Alta">Alta</option>
+            <option value="Media">Media</option>
+            <option value="Baja">Baja</option>
+        </select>
+    </div>
+    <!-- Fin del filtro de búsqueda por prioridad -->
+    <div id="citasContainer" class="row">
+    </div>
+</div>
+
+<div id="calendar-container">
+    <div id="calendar"></div>
+</div>
+
+<!-- Botón redondo del calendario -->
+<button id="toggle-calendar"><i class="fas fa-calendar"></i></button>
+
+<script>
+    
+    // Variable para controlar el estado del contenedor del calendario
+    let calendarVisible = false;
+
+    // Función para mostrar u ocultar el contenedor del calendario
+    function toggleCalendar() {
+        const calendarContainer = document.getElementById('calendar-container');
+        calendarVisible = !calendarVisible; // Cambiar el estado del contenedor
+        calendarContainer.style.display = calendarVisible ? 'block' : 'none'; // Mostrar u ocultar el contenedor según el estado
+    }
+
+    // Asignar la función toggleCalendar al evento click del botón redondo
+    document.getElementById('toggle-calendar').addEventListener('click', toggleCalendar);
+    
+
+    // Hacer una solicitud al servidor para obtener los datos de la cita
+    fetch('/consultar_citas')
+        .then(response => response.json())
+        .then(data => {
+            // Iterar sobre los datos y crear elementos HTML para cada cita
+            data.forEach(cita => {
+                // Convertir la fecha y hora de la cita a un formato legible
+                const fechaHoraLocal = new Date(cita.Fecha_Cita);
+                const dia = fechaHoraLocal.getDate();
+                const mes = fechaHoraLocal.getMonth() + 1;
+                const año = fechaHoraLocal.getFullYear();
+                const horas = String(fechaHoraLocal.getHours()).padStart(2, '0');
+                const minutos = String(fechaHoraLocal.getMinutes()).padStart(2, '0');
+                const segundos = String(fechaHoraLocal.getSeconds()).padStart(2, '0');
+                const fechaHoraString = `${dia}/${mes}/${año}, ${horas}:${minutos}:${segundos}`;
+
+                // Crear elemento HTML para la cita
+                const citaCard = document.createElement('div');
+                citaCard.classList.add('card', 'col-sm-4', 'm-2', 'p-1');
+                citaCard.innerHTML = `
+                    <div class="card-body">
+                        <h5 class="card-title">${cita.Nombre_Usuario}  </h5>
+                        <p class="card-text"><b>Asunto:</b> ${cita.Asunto}</p>
+                        <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
+                        <p class="card-text"><b>Fecha de Cita:</b> ${fechaHoraString}</p>
+                        <hr>
+                        <button type="button" class="btn " onclick="tomarCita(${cita.ID_Cita}, '${cita.Fecha_Cita}')" style="background-color: #46bbc4;  color: #fff;">Tomar cita</button>
+                    </div>
+                `;
+
+                document.getElementById('citasContainer').appendChild(citaCard);
+            });
+
+            // Crear el calendario con el mes y año actual
+            createCalendar(new Date().getMonth(), new Date().getFullYear(), data);
+        })
+        .catch(error => {
+            console.error('Error al obtener datos de citas:', error);
+        });
+
+    // Función para filtrar citas por prioridad
+    function filtrarCitas() {
+        const filtroPrioridad = document.getElementById('filtroPrioridad').value;
+        const citasContainer = document.getElementById('citasContainer');
+        citasContainer.innerHTML = ''; // Limpiar citas actuales antes de mostrar las filtradas
         fetch('/consultar_citas')
             .then(response => response.json())
             .then(data => {
-                // Iterar sobre los datos y crear elementos HTML para cada cita
-                data.forEach(cita => {
-                    // Convertir la fecha y hora de la cita a un formato legible
-                    const fechaHoraLocal = new Date(cita.Fecha_Cita);
-                    const dia = fechaHoraLocal.getDate();
-                    const mes = fechaHoraLocal.getMonth() + 1;
-                    const año = fechaHoraLocal.getFullYear();
-                    const horas = String(fechaHoraLocal.getHours()).padStart(2, '0');
-                    const minutos = String(fechaHoraLocal.getMinutes()).padStart(2, '0');
-                    const segundos = String(fechaHoraLocal.getSeconds()).padStart(2, '0');
-                    const fechaHoraString = `${dia}/${mes}/${año}, ${horas}:${minutos}:${segundos}`;
+                if (filtroPrioridad) {
+                    const citasFiltradas = data.filter(cita => cita.Pioridad_Cita === filtroPrioridad);
+                    citasFiltradas.forEach(cita => {
+                        const fechaHoraLocal = new Date(cita.Fecha_Cita);
+                        const dia = fechaHoraLocal.getDate();
+                        const mes = fechaHoraLocal.getMonth() + 1;
+                        const año = fechaHoraLocal.getFullYear();
+                        const horas = String(fechaHoraLocal.getHours()).padStart(2, '0');
+                        const minutos = String(fechaHoraLocal.getMinutes()).padStart(2, '0');
+                        const segundos = String(fechaHoraLocal.getSeconds()).padStart(2, '0');
+                        const fechaHoraString = `${dia}/${mes}/${año}, ${horas}:${minutos}:${segundos}`;
 
-                    // Crear elemento HTML para la cita
-                    const citaCard = document.createElement('div');
-                    citaCard.classList.add('card', 'col-sm-4', 'm-2', 'p-1');
-                    citaCard.innerHTML = `
-                        <div class="card-body">
-                            <h5 class="card-title">${cita.Nombre_Usuario}  </h5>
-                            <p class="card-text"><b>Asunto:</b> ${cita.Asunto}</p>
-                            <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
-                            <p class="card-text"><b>Fecha de Cita:</b> ${fechaHoraString}</p>
-                            <hr>
-                            <button type="button" class="btn " onclick="tomarCita(${cita.ID_Cita}, '${cita.Fecha_Cita}')" style="background-color: #46bbc4;  color: #fff;">Tomar cita</button>
-                        </div>
-                    `;
-    
-                    document.getElementById('citasContainer').appendChild(citaCard);
-                });
+                        const citaCard = document.createElement('div');
+                        citaCard.classList.add('card', 'col-sm-4', 'm-2', 'p-1');
+                        citaCard.innerHTML = `
+                            <div class="card-body">
+                                <h5 class="card-title">${cita.Nombre_Usuario}  </h5>
+                                <p class="card-text"><b>Asunto:</b> ${cita.Asunto}</p>
+                                <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
+                                <p class="card-text"><b>Fecha de Cita:</b> ${fechaHoraString}</p>
+                                <hr>
+                                <button type="button" class="btn btn-warning" onclick="tomarCita(${cita.ID_Cita}, '${cita.Fecha_Cita}')">Tomar cita</button>
+                            </div>
+                        `;
 
-                // Crear el calendario con el mes y año actual
-                createCalendar(new Date().getMonth(), new Date().getFullYear(), data);
+                        citasContainer.appendChild(citaCard);
+                    });
+                } else {
+                    // Si no hay filtro de prioridad, mostrar todas las citas
+                    data.forEach(cita => {
+                        const fechaHoraLocal = new Date(cita.Fecha_Cita);
+                        const dia = fechaHoraLocal.getDate();
+                        const mes = fechaHoraLocal.getMonth() + 1;
+                        const año = fechaHoraLocal.getFullYear();
+                        const horas = String(fechaHoraLocal.getHours()).padStart(2, '0');
+                        const minutos = String(fechaHoraLocal.getMinutes()).padStart(2, '0');
+                        const segundos = String(fechaHoraLocal.getSeconds()).padStart(2, '0');
+                        const fechaHoraString = `${dia}/${mes}/${año}, ${horas}:${minutos}:${segundos}`;
+
+                        const citaCard = document.createElement('div');
+                        citaCard.classList.add('card', 'col-sm-4', 'm-2', 'p-1');
+                        citaCard.innerHTML = `
+                            <div class="card-body">
+                                <h5 class="card-title">${cita.Nombre_Usuario}  </h5>
+                                <p class="card-text"><b>Asunto:</b> ${cita.Asunto}</p>
+                                <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
+                                <p class="card-text"><b>Fecha de Cita:</b> ${fechaHoraString}</p>
+                                <hr>
+                                <button type="button" class="btn btn-warning" onclick="tomarCita(${cita.ID_Cita}, '${cita.Fecha_Cita}')">Tomar cita</button>
+                            </div>
+                        `;
+
+                        citasContainer.appendChild(citaCard);
+                    });
+                }
             })
             .catch(error => {
                 console.error('Error al obtener datos de citas:', error);
             });
+    }
 
-        // Función para filtrar citas por prioridad
-        function filtrarCitas() {
-            const filtroPrioridad = document.getElementById('filtroPrioridad').value;
-            const citasContainer = document.getElementById('citasContainer');
-            citasContainer.innerHTML = ''; // Limpiar citas actuales antes de mostrar las filtradas
-            fetch('/consultar_citas')
-                .then(response => response.json())
-                .then(data => {
-                    if (filtroPrioridad) {
-                        const citasFiltradas = data.filter(cita => cita.Pioridad_Cita === filtroPrioridad);
-                        citasFiltradas.forEach(cita => {
-                            const fechaHoraLocal = new Date(cita.Fecha_Cita);
-                            const dia = fechaHoraLocal.getDate();
-                            const mes = fechaHoraLocal.getMonth() + 1;
-                            const año = fechaHoraLocal.getFullYear();
-                            const horas = String(fechaHoraLocal.getHours()).padStart(2, '0');
-                            const minutos = String(fechaHoraLocal.getMinutes()).padStart(2, '0');
-                            const segundos = String(fechaHoraLocal.getSeconds()).padStart(2, '0');
-                            const fechaHoraString = `${dia}/${mes}/${año}, ${horas}:${minutos}:${segundos}`;
+    function tomarCita(idCita, fechaCita) {
+        fetch('/Vendedor/tomar_cita', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ idCita: idCita, fechaCita: fechaCita })
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Cita tomada exitosamente');
+                // Refrescar la página después de 1 segundo
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                alert('Error al tomar la cita');
+            }
+        })
+        .catch(error => {
+            console.error('Error al tomar la cita:', error);
+            alert('Error interno del servidor');
+        });
+    }
 
-                            const citaCard = document.createElement('div');
-                            citaCard.classList.add('card', 'col-sm-4', 'm-2', 'p-1');
-                            citaCard.innerHTML = `
-                                <div class="card-body">
-                                    <h5 class="card-title">${cita.Nombre_Usuario}  </h5>
-                                    <p class="card-text"><b>Asunto:</b> ${cita.Asunto}</p>
-                                    <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
-                                    <p class="card-text"><b>Fecha de Cita:</b> ${fechaHoraString}</p>
-                                    <hr>
-                                    <button type="button" class="btn btn-warning" onclick="tomarCita(${cita.ID_Cita}, '${cita.Fecha_Cita}')">Tomar cita</button>
-                                </div>
-                            `;
-    
-                            citasContainer.appendChild(citaCard);
-                        });
-                    } else {
-                        // Si no hay filtro de prioridad, mostrar todas las citas
-                        data.forEach(cita => {
-                            const fechaHoraLocal = new Date(cita.Fecha_Cita);
-                            const dia = fechaHoraLocal.getDate();
-                            const mes = fechaHoraLocal.getMonth() + 1;
-                            const año = fechaHoraLocal.getFullYear();
-                            const horas = String(fechaHoraLocal.getHours()).padStart(2, '0');
-                            const minutos = String(fechaHoraLocal.getMinutes()).padStart(2, '0');
-                            const segundos = String(fechaHoraLocal.getSeconds()).padStart(2, '0');
-                            const fechaHoraString = `${dia}/${mes}/${año}, ${horas}:${minutos}:${segundos}`;
+    function verificarHoraCita(fechaCita) {
+        // Obtener la hora actual en formato UTC
+        const horaActual = new Date().getTime();
 
-                            const citaCard = document.createElement('div');
-                            citaCard.classList.add('card', 'col-sm-4', 'm-2', 'p-1');
-                            citaCard.innerHTML = `
-                                <div class="card-body">
-                                    <h5 class="card-title">${cita.Nombre_Usuario}  </h5>
-                                    <p class="card-text"><b>Asunto:</b> ${cita.Asunto}</p>
-                                    <p class="card-text"><b>Prioridad:</b> ${cita.Pioridad_Cita}</p>
-                                    <p class="card-text"><b>Fecha de Cita:</b> ${fechaHoraString}</p>
-                                    <hr>
-                                    <button type="button" class="btn btn-warning" onclick="tomarCita(${cita.ID_Cita}, '${cita.Fecha_Cita}')">Tomar cita</button>
-                                </div>
-                            `;
-    
-                            citasContainer.appendChild(citaCard);
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error al obtener datos de citas:', error);
-                });
-        }
+        // Convertir la fecha de la cita a milisegundos
+        const horaCita = new Date(fechaCita).getTime();
 
-        function tomarCita(idCita, fechaCita) {
-            fetch('/Vendedor/tomar_cita', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ idCita: idCita, fechaCita: fechaCita })
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert('Cita tomada exitosamente');
-                    // Refrescar la página después de 1 segundo
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
+        // Calcular la diferencia de tiempo en milisegundos
+        const diferenciaTiempo = horaActual - horaCita;
+
+        // Convertir la diferencia de tiempo a horas
+        const diferenciaHoras = diferenciaTiempo / (1000 * 3600);
+
+        // Si la diferencia de tiempo es menor a 1 hora, retornar falso
+        return diferenciaHoras >= 1;
+    }
+
+    // Función para crear el calendario
+    function createCalendar(month, year, citasData) {
+        const calendar = document.getElementById('calendar');
+        const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+        // Crear encabezado del calendario
+        let calendarHTML = `
+            <div class="calendar-header">${monthNames[month]} ${year}</div>
+            <div class="calendar">`;
+
+        // Obtener el primer día de la semana del mes
+        const firstDayOfMonth = new Date(year, month, 1).getDay();
+
+        // Obtener el número total de días en el mes
+        const totalDays = new Date(year, month + 1, 0).getDate();
+
+        // Crear objeto para almacenar la cantidad de citas por día
+        const citasPorDia = {};
+
+        // Contar la cantidad de citas por día
+        citasData.forEach(cita => {
+            const citaDate = new Date(cita.Fecha_Cita);
+            const day = citaDate.getDate();
+            citasPorDia[day] = (citasPorDia[day] || 0) + 1;
+        });
+
+        // Crear celdas para cada día del mes
+        let dayCounter = 1;
+        for (let i = 0; i < 6; i++) {
+            for (let j = 0; j < 7; j++) {
+                if ((i === 0 && j < firstDayOfMonth) || dayCounter > totalDays) {
+                    calendarHTML += '<div class="calendar-day"></div>';
                 } else {
-                    alert('Error al tomar la cita');
-                }
-            })
-            .catch(error => {
-                console.error('Error al tomar la cita:', error);
-                alert('Error interno del servidor');
-            });
-        }
-
-        function verificarHoraCita(fechaCita) {
-            // Obtener la hora actual en formato UTC
-            const horaActual = new Date().getTime();
-
-            // Convertir la fecha de la cita a milisegundos
-            const horaCita = new Date(fechaCita).getTime();
-
-            // Calcular la diferencia de tiempo en milisegundos
-            const diferenciaTiempo = horaActual - horaCita;
-
-            // Convertir la diferencia de tiempo a horas
-            const diferenciaHoras = diferenciaTiempo / (1000 * 3600);
-
-            // Si la diferencia de tiempo es menor a 1 hora, retornar falso
-            return diferenciaHoras >= 1;
-        }
-
-        // Función para crear el calendario
-        function createCalendar(month, year, citasData) {
-            const calendar = document.getElementById('calendar');
-            const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-
-            // Crear encabezado del calendario
-            let calendarHTML = `
-                <div class="calendar-header">${monthNames[month]} ${year}</div>
-                <div class="calendar">`;
-
-            // Obtener el primer día de la semana del mes
-            const firstDayOfMonth = new Date(year, month, 1).getDay();
-
-            // Obtener el número total de días en el mes
-            const totalDays = new Date(year, month + 1, 0).getDate();
-
-            // Crear objeto para almacenar la cantidad de citas por día
-            const citasPorDia = {};
-
-            // Contar la cantidad de citas por día
-            citasData.forEach(cita => {
-                const citaDate = new Date(cita.Fecha_Cita);
-                const day = citaDate.getDate();
-                citasPorDia[day] = (citasPorDia[day] || 0) + 1;
-            });
-
-            // Crear celdas para cada día del mes
-            let dayCounter = 1;
-            for (let i = 0; i < 6; i++) {
-                for (let j = 0; j < 7; j++) {
-                    if ((i === 0 && j < firstDayOfMonth) || dayCounter > totalDays) {
-                        calendarHTML += '<div class="calendar-day"></div>';
-                    } else {
-                        const currentDate = new Date();
-                        const currentDay = currentDate.getDate();
-                        const isCurrentMonth = currentDate.getMonth() === month;
-                        const isCurrentDay = dayCounter === currentDay && isCurrentMonth;
-                        const hasAppointment = citasPorDia[dayCounter];
-                        const classNames = ['calendar-day'];
-                        if (isCurrentDay) classNames.push('current-day');
-                        if (hasAppointment) classNames.push('has-appointment');
-                        calendarHTML += `<div class="${classNames.join(' ')}">${dayCounter}<br>${hasAppointment || ''}</div>`;
-                        dayCounter++;
-                    }
+                    const currentDate = new Date();
+                    const currentDay = currentDate.getDate();
+                    const isCurrentMonth = currentDate.getMonth() === month;
+                    const isCurrentDay = dayCounter === currentDay && isCurrentMonth;
+                    const hasAppointment = citasPorDia[dayCounter];
+                    const classNames = ['calendar-day'];
+                    if (isCurrentDay) classNames.push('current-day');
+                    if (hasAppointment) classNames.push('has-appointment');
+                    calendarHTML += `<div class="${classNames.join(' ')}">${dayCounter}<br>${hasAppointment || ''}</div>`;
+                    dayCounter++;
                 }
             }
-
-            // Cerrar contenedor del calendario
-            calendarHTML += '</div>';
-
-            // Agregar HTML generado al contenedor del calendario
-            calendar.innerHTML = calendarHTML;
         }
 
-        // Obtener fecha actual
-        const currentDate = new Date();
-        const currentMonth = currentDate.getMonth();
-        const currentYear = currentDate.getFullYear();
+        // Cerrar contenedor del calendario
+        calendarHTML += '</div>';
 
-        // Crear calendario con el mes y año actual
-        createCalendar(currentMonth, currentYear);
+        // Agregar HTML generado al contenedor del calendario
+        calendar.innerHTML = calendarHTML;
+    }
 
+    // Obtener fecha actual
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
 
+    // Crear calendario con el mes y año actual
+    createCalendar(currentMonth, currentYear);
 
-
-      
-        // Manejar el clic en el botón "Cerrar sesión"
-        document.getElementById('empleados').addEventListener('click', function(event) {
-            event.preventDefault(); // Evitar el comportamiento predeterminado del enlace
-            // Lógica para cerrar sesión
-            fetch('/logout', {
-                method: 'POST'
-            })
-            .then(response => {
-                if (response.redirected) {
-                    // Si la respuesta redirecciona, redirigir al usuario a la página principal
-                    window.location.href = response.url;
-                } else {
-                    console.error('Error al cerrar sesión:', response.statusText);
-                    // Manejar el error al cerrar sesión
-                }
-            })
-            .catch(error => console.error('Error al cerrar sesión:', error));
-        });
-    </script>
+    // Manejar el clic en el botón "Cerrar sesión"
+    document.getElementById('empleados').addEventListener('click', function(event) {
+        event.preventDefault(); // Evitar el comportamiento predeterminado del enlace
+        // Lógica para cerrar sesión
+        fetch('/logout', {
+            method: 'POST'
+        })
+        .then(response => {
+            if (response.redirected) {
+                // Si la respuesta redirecciona, redirigir al usuario a la página principal
+                window.location.href = response.url;
+            } else {
+                console.error('Error al cerrar sesión:', response.statusText);
+                // Manejar el error al cerrar sesión
+            }
+        })
+        .catch(error => console.error('Error al cerrar sesión:', error));
+    });
+</script>
 </body>
 </html>

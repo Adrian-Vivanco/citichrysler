@@ -55,6 +55,47 @@
             background-color: #336265;
             color: #fff;
         }
+        /* Estilos para el botón redondo del calendario */
+    #toggle-calendar {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: #46bbc4;
+        color: #fff;
+        font-size: 20px;
+        border: none;
+        cursor: pointer;
+        z-index: 1000;
+        display: none; /* Ocultar por defecto en pantallas grandes */
+    }
+    @media (max-width: 768px) {
+        /* Mostrar el botón redondo en pantallas pequeñas */
+        #toggle-calendar {
+            display: block;
+        }
+        /* Ocultar el contenedor del calendario en pantallas pequeñas */
+        #calendar-container {
+            display: none;
+        }
+    }
+    @media (max-width: 576px) {
+    /* Estilos para pantallas con un ancho máximo de 576px (generalmente teléfonos móviles en orientación vertical) */
+    #calendar-container {
+        width: 300px; /* Reducir el ancho del contenedor del calendario */
+        height: 400px; /* Reducir la altura del contenedor del calendario */
+        top: 150px; /* Ajustar la posición superior para centrarlo mejor */
+    }
+    .calendar-header {
+        font-size: 14px; /* Reducir el tamaño del texto del encabezado del calendario */
+    }
+    .calendar-day {
+        font-size: 16px; /* Reducir el tamaño del texto del día del calendario */
+        padding: 3px; /* Reducir el espacio entre los días del calendario */
+    }
+}
     </style>
     <script src="https://kit.fontawesome.com/e07784388c.js" crossorigin="anonymous"></script>
     <!-- Favicon - FIS -->
@@ -109,8 +150,25 @@
     <div id="calendar-container">
         <div id="calendar"></div>
     </div>
+    <!-- Botón redondo del calendario -->
+<button id="toggle-calendar"><i class="fas fa-calendar"></i></button>
 
     <script>
+// Variable para controlar el estado del contenedor del calendario
+let calendarVisible = false;
+
+// Función para mostrar u ocultar el contenedor del calendario
+function toggleCalendar() {
+    const calendarContainer = document.getElementById('calendar-container');
+    calendarVisible = !calendarVisible; // Cambiar el estado del contenedor
+    calendarContainer.style.display = calendarVisible ? 'block' : 'none'; // Mostrar u ocultar el contenedor según el estado
+}
+
+// Asignar la función toggleCalendar al evento click del botón redondo
+document.getElementById('toggle-calendar').addEventListener('click', toggleCalendar);
+
+
+
         // Función para formatear la fecha en formato legible
         function formatDate(dateString) {
             const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZone: 'America/Mexico_City' };
